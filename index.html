@@ -545,21 +545,43 @@
       justify-content: center;
       font-size: 0.7rem;
       font-weight: 700;
-      background: #334155;
+      background-color: #334155;
       color: #94a3b8;
+      overflow: hidden;
+      position: relative;
     }
 
-    .file-item.active .file-icon {
-      background: rgba(255, 255, 255, 0.2);
+    .file-icon .icon-thumb,
+    .player-badge .icon-thumb {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+      border-radius: inherit;
+    }
+
+    .file-item.active .file-icon:not(.has-thumb) {
+      background-color: rgba(255, 255, 255, 0.2);
       color: #fff;
     }
 
-    .file-icon.video { background: #312e81; color: #a5b4fc; }
-    .file-icon.audio { background: #14532d; color: #86efac; }
-    .file-item.active .file-icon.video,
-    .file-item.active .file-icon.audio {
-      background: rgba(255, 255, 255, 0.2);
+    .file-icon.video { background-color: #312e81; color: #a5b4fc; }
+    .file-icon.audio { background-color: #14532d; color: #86efac; }
+    .file-icon.has-thumb {
+      background-color: #1e293b;
+      color: transparent;
+    }
+    .file-item.active .file-icon.video:not(.has-thumb),
+    .file-item.active .file-icon.audio:not(.has-thumb) {
+      background-color: rgba(255, 255, 255, 0.2);
       color: #fff;
+    }
+    .file-item.active .file-icon.has-thumb {
+      background-color: #1e293b;
+      box-shadow: inset 0 0 0 2px rgba(255, 255, 255, 0.85);
+      color: transparent;
     }
 
     .file-details {
@@ -642,7 +664,7 @@
 
     .player-badge {
       flex-shrink: 0;
-      min-width: 44px;
+      width: 44px;
       height: 44px;
       border-radius: 10px;
       display: flex;
@@ -651,16 +673,23 @@
       font-size: 0.72rem;
       font-weight: 700;
       letter-spacing: 0.02em;
+      overflow: hidden;
+      position: relative;
     }
 
     .player-badge.video {
-      background: #312e81;
+      background-color: #312e81;
       color: #a5b4fc;
     }
 
     .player-badge.audio {
-      background: #14532d;
+      background-color: #14532d;
       color: #86efac;
+    }
+
+    .player-badge.has-thumb {
+      background-color: #1e293b;
+      color: transparent;
     }
 
     .player-meta {
@@ -767,13 +796,32 @@
     .subtitle-panel.visible { display: block; }
 
     .subtitle-scroll {
-      height: 160px;
+      height: 450px;
       overflow-y: auto;
       overflow-x: hidden;
       scroll-behavior: smooth;
       padding: 20px 24px;
       mask-image: linear-gradient(to bottom, transparent 0%, #000 18%, #000 82%, transparent 100%);
       -webkit-mask-image: linear-gradient(to bottom, transparent 0%, #000 18%, #000 82%, transparent 100%);
+      scrollbar-width: thin;
+      scrollbar-color: #334155 transparent;
+    }
+
+    .subtitle-scroll::-webkit-scrollbar {
+      width: 6px;
+    }
+
+    .subtitle-scroll::-webkit-scrollbar-track {
+      background: transparent;
+    }
+
+    .subtitle-scroll::-webkit-scrollbar-thumb {
+      background: #334155;
+      border-radius: 3px;
+    }
+
+    .subtitle-scroll::-webkit-scrollbar-thumb:hover {
+      background: #475569;
     }
 
     .subtitle-lines {
@@ -804,12 +852,13 @@
     }
 
     .player-audio-visual.has-subtitle {
-      min-height: 100px;
-      padding: 20px 32px 12px;
+      min-height: 0;
+      padding: 0;
+      gap: 0;
     }
 
     .player-audio-visual.has-subtitle .audio-wave {
-      height: 36px;
+      display: none;
     }
 
     .player-audio-visual.has-subtitle .audio-visual-label {
@@ -1106,7 +1155,7 @@
         <button type="button" class="btn-search-clear" id="btnSearchClear" title="清除搜索" aria-label="清除搜索" hidden>×</button>
       </div>
       <ul class="file-list" id="fileList"></ul>
-      <input type="file" id="fileInput" accept="audio/*,video/*,.mp3,.mp4,.lrc" multiple />
+      <input type="file" id="fileInput" accept="audio/*,video/*,image/*,.mp3,.mp4,.lrc,.jpg,.jpeg,.png,.webp,.gif,.bmp,.avif" multiple />
       <input type="file" id="folderInput" webkitdirectory multiple hidden />
     </aside>
     <div class="sidebar-resizer" id="sidebarResizer" title="拖拽调整宽度"></div>
@@ -1452,11 +1501,238 @@
       }));
     }
 
+    function dbUpdateThumbnail(id, thumbnailBlob) {
+      return openDB().then((db) => new Promise((resolve, reject) => {
+        const tx = db.transaction(STORE_NAME, 'readwrite');
+        const store = tx.objectStore(STORE_NAME);
+        const getReq = store.get(id);
+        getReq.onsuccess = () => {
+          const record = getReq.result;
+          if (!record) {
+            resolve(null);
+            return;
+          }
+          record.thumbnailBlob = thumbnailBlob;
+          const putReq = store.put(record);
+          putReq.onsuccess = () => resolve(record);
+          putReq.onerror = () => reject(putReq.error);
+        };
+        getReq.onerror = () => reject(getReq.error);
+      }));
+    }
+
+    function revokeItemUrls(item) {
+      URL.revokeObjectURL(item.objectUrl);
+      if (item.thumbnailUrl) URL.revokeObjectURL(item.thumbnailUrl);
+    }
+
+    function applyMediaIcon(el, item) {
+      const label = item.type === 'video' ? 'MP4' : 'MP3';
+
+      if (item.thumbnailUrl) {
+        el.classList.add('has-thumb');
+        el.setAttribute('aria-label', label);
+        let img = el.querySelector('.icon-thumb');
+        if (!img) {
+          el.textContent = '';
+          img = document.createElement('img');
+          img.className = 'icon-thumb';
+          img.alt = '';
+          el.appendChild(img);
+        }
+        if (img.src !== item.thumbnailUrl) img.src = item.thumbnailUrl;
+      } else {
+        el.classList.remove('has-thumb');
+        el.removeAttribute('aria-label');
+        el.textContent = label;
+        const img = el.querySelector('.icon-thumb');
+        if (img) img.remove();
+      }
+    }
+
+    function syncSafeInt(view, offset, size) {
+      let result = 0;
+      for (let i = 0; i < size; i += 1) {
+        result = (result << 7) | (view.getUint8(offset + i) & 0x7f);
+      }
+      return result;
+    }
+
+    function extractMp3Cover(file) {
+      const headSize = Math.min(file.size, 512 * 1024);
+      return file.slice(0, headSize).arrayBuffer().then((buffer) => {
+        const bytes = new Uint8Array(buffer);
+        if (bytes.length < 10 || bytes[0] !== 0x49 || bytes[1] !== 0x44 || bytes[2] !== 0x33) {
+          return null;
+        }
+
+        const view = new DataView(buffer);
+        const majorVersion = view.getUint8(3);
+        const tagSize = syncSafeInt(view, 6, 4);
+        let offset = 10;
+        const end = Math.min(10 + tagSize, bytes.length);
+
+        while (offset + 10 <= end) {
+          const frameId = String.fromCharCode(bytes[offset], bytes[offset + 1], bytes[offset + 2], bytes[offset + 3]);
+          const frameSize = majorVersion === 4
+            ? syncSafeInt(view, offset + 4, 4)
+            : view.getUint32(offset + 4, false);
+          offset += 10;
+          if (frameSize <= 0 || offset + frameSize > end) break;
+
+          if (frameId === 'APIC' || frameId === 'PIC ') {
+            let pos = offset;
+            const encoding = bytes[pos];
+            pos += 1;
+
+            while (pos < offset + frameSize && bytes[pos] !== 0) pos += 1;
+            const mimeStart = offset + 1;
+            const mime = String.fromCharCode(...bytes.slice(mimeStart, pos)).toLowerCase() || 'image/jpeg';
+            pos += 1;
+            pos += 1;
+
+            if (encoding === 1 || encoding === 2) {
+              while (pos + 1 < offset + frameSize && !(bytes[pos] === 0 && bytes[pos + 1] === 0)) pos += 2;
+              pos += 2;
+            } else {
+              while (pos < offset + frameSize && bytes[pos] !== 0) pos += 1;
+              pos += 1;
+            }
+
+            const imageData = bytes.slice(pos, offset + frameSize);
+            if (imageData.length > 0) {
+              const type = mime.startsWith('image/') ? mime : 'image/jpeg';
+              return new Blob([imageData], { type });
+            }
+          }
+
+          offset += frameSize;
+        }
+
+        return null;
+      }).catch(() => null);
+    }
+
+    function captureVideoThumbnail(file) {
+      return new Promise((resolve) => {
+        const video = document.createElement('video');
+        video.preload = 'auto';
+        video.muted = true;
+        video.playsInline = true;
+        const url = URL.createObjectURL(file);
+
+        const finish = (blob) => {
+          video.removeAttribute('src');
+          video.load();
+          URL.revokeObjectURL(url);
+          resolve(blob);
+        };
+
+        video.addEventListener('error', () => finish(null));
+        video.addEventListener('loadedmetadata', () => {
+          const duration = video.duration;
+          video.currentTime = Number.isFinite(duration) && duration > 1
+            ? Math.min(1, duration * 0.05)
+            : 0;
+        });
+        video.addEventListener('seeked', () => {
+          try {
+            const vw = video.videoWidth;
+            const vh = video.videoHeight;
+            if (!vw || !vh) {
+              finish(null);
+              return;
+            }
+            const size = 128;
+            const canvas = document.createElement('canvas');
+            canvas.width = size;
+            canvas.height = size;
+            const ctx = canvas.getContext('2d');
+            const scale = Math.max(size / vw, size / vh);
+            const dw = vw * scale;
+            const dh = vh * scale;
+            ctx.drawImage(video, (size - dw) / 2, (size - dh) / 2, dw, dh);
+            canvas.toBlob((blob) => finish(blob), 'image/jpeg', 0.82);
+          } catch {
+            finish(null);
+          }
+        }, { once: true });
+
+        video.src = url;
+      });
+    }
+
+    function generateMediaThumbnail(file, type, companionCover = null) {
+      if (companionCover) return coverFileToBlob(companionCover);
+      if (type === 'video') return captureVideoThumbnail(file);
+      if (/\.mp3$/i.test(file.name) || file.type === 'audio/mpeg') return extractMp3Cover(file);
+      return Promise.resolve(null);
+    }
+
+    function coverFileToBlob(file) {
+      if (!file) return Promise.resolve(null);
+      return file.arrayBuffer().then((buf) => new Blob([buf], { type: file.type || 'image/jpeg' }));
+    }
+
+    function attachThumbnailToItem(item, thumbnailBlob) {
+      if (!thumbnailBlob) return item;
+      if (item.thumbnailUrl) URL.revokeObjectURL(item.thumbnailUrl);
+      item.thumbnailBlob = thumbnailBlob;
+      item.thumbnailUrl = URL.createObjectURL(thumbnailBlob);
+      return item;
+    }
+
+    function isCoverImage(file) {
+      if (file.type.startsWith('image/')) return true;
+      return /\.(webp|jpe?g|png|gif|bmp|avif)$/i.test(file.name);
+    }
+
+    function normalizeMatchName(filename) {
+      return getBaseName(filename)
+        .normalize('NFC')
+        .replace(/（/g, '(')
+        .replace(/）/g, ')')
+        .replace(/[－—–]/g, '-')
+        .trim();
+    }
+
+    function getCoverLookupKey(name, folder) {
+      return `${folder || UNGROUPED_FOLDER}\0${normalizeMatchName(name)}`;
+    }
+
+    function getCoverLookupKeyFromFile(file) {
+      return getCoverLookupKey(file.name, getFolderFromFile(file));
+    }
+
+    function buildCoverImageMap(imageFiles) {
+      const map = new Map();
+      const extPriority = { '.webp': 0, '.png': 1, '.jpg': 2, '.jpeg': 2, '.gif': 3, '.bmp': 4, '.avif': 5 };
+
+      imageFiles.forEach((file) => {
+        const key = getCoverLookupKeyFromFile(file);
+        const dot = file.name.lastIndexOf('.');
+        const ext = dot >= 0 ? file.name.slice(dot).toLowerCase() : '';
+        const existing = map.get(key);
+        if (!existing || (extPriority[ext] ?? 99) < (extPriority[existing.ext] ?? 99)) {
+          map.set(key, { file, ext });
+        }
+      });
+
+      return map;
+    }
+
+    function findMediaItemForCover(file) {
+      const baseName = normalizeMatchName(file.name);
+      const folder = getFolderFromFile(file);
+      return mediaItems.find((m) => normalizeMatchName(m.name) === baseName && m.folder === folder)
+        || mediaItems.find((m) => normalizeMatchName(m.name) === baseName);
+    }
+
     function recordToItem(record) {
       const file = new File([record.blob], record.name, {
         type: record.mimeType || (record.type === 'video' ? 'video/mp4' : 'audio/mpeg'),
       });
-      return {
+      const item = {
         id: record.id,
         file,
         objectUrl: URL.createObjectURL(record.blob),
@@ -1468,6 +1744,11 @@
         subtitleLrc: record.subtitleLrc || '',
         subtitleLines: parseLRC(record.subtitleLrc || ''),
       };
+      if (record.thumbnailBlob) {
+        item.thumbnailBlob = record.thumbnailBlob;
+        item.thumbnailUrl = URL.createObjectURL(record.thumbnailBlob);
+      }
+      return item;
     }
 
     function getBaseName(filename) {
@@ -1567,6 +1848,30 @@
       if (index >= 0 && children[index]) {
         children[index].scrollIntoView({ behavior: 'smooth', block: 'center' });
       }
+    }
+
+    function processCoverImages(coverImages) {
+      const tasks = coverImages.map((file) => {
+        const item = findMediaItemForCover(file);
+        if (!item) return Promise.resolve({ matched: false, name: file.name });
+        return coverFileToBlob(file).then((blob) => {
+          if (!blob) return { matched: false, name: file.name };
+          attachThumbnailToItem(item, blob);
+          return dbUpdateThumbnail(item.id, blob).then(() => ({ matched: true, name: file.name }));
+        });
+      });
+
+      return Promise.all(tasks).then((results) => {
+        const unmatched = results.filter((r) => r && !r.matched);
+        if (unmatched.length > 0) {
+          alert(`以下封面图片未找到同名音视频：\n${unmatched.map((r) => r.name).join('\n')}`);
+        }
+        if (activeId !== null) {
+          const activeItem = mediaItems.find((m) => m.id === activeId);
+          if (activeItem) updatePlayerInfo(activeItem);
+        }
+        renderList();
+      });
     }
 
     function processLrcFiles(lrcFiles) {
@@ -1751,13 +2056,15 @@
     }
 
     function updatePlayerInfo(item) {
-      playerBadge.textContent = item.type === 'video' ? 'MP4' : 'MP3';
       playerBadge.className = `player-badge ${item.type}`;
+      applyMediaIcon(playerBadge, item);
       playerTitle.textContent = item.name;
       playerSize.textContent = formatSize(item.size);
     }
 
     function clearPlayerInfo() {
+      playerBadge.className = 'player-badge audio';
+      applyMediaIcon(playerBadge, { type: 'audio', thumbnailUrl: '' });
       playerTitle.textContent = '';
       playerSize.textContent = '';
       resetPlayerControls();
@@ -2116,12 +2423,17 @@
       });
     }
 
-    function addMediaFile(file) {
+    function addMediaFile(file, companionCover = null) {
       const type = isVideo(file) ? 'video' : 'audio';
       const folder = getFolderFromFile(file);
       return probeMediaDuration(file, type)
         .then((duration) => dbAddFile(file, duration, folder))
-        .then((record) => recordToItem(record));
+        .then((record) => recordToItem(record))
+        .then((item) => generateMediaThumbnail(file, type, companionCover).then((thumbnailBlob) => {
+          if (!thumbnailBlob) return item;
+          attachThumbnailToItem(item, thumbnailBlob);
+          return dbUpdateThumbnail(item.id, thumbnailBlob).then(() => item);
+        }));
     }
 
     function probeMissingDurations() {
@@ -2133,6 +2445,23 @@
         if (duration > 0) return dbUpdateDuration(item.id, duration);
       }))).then(() => {
         renderList();
+      });
+    }
+
+    function probeMissingThumbnails() {
+      const pending = mediaItems.filter((item) => !item.thumbnailUrl);
+      if (!pending.length) return Promise.resolve();
+
+      return Promise.all(pending.map((item) => generateMediaThumbnail(item.file, item.type).then((thumbnailBlob) => {
+        if (!thumbnailBlob) return;
+        attachThumbnailToItem(item, thumbnailBlob);
+        return dbUpdateThumbnail(item.id, thumbnailBlob);
+      }))).then(() => {
+        renderList();
+        if (activeId !== null) {
+          const activeItem = mediaItems.find((m) => m.id === activeId);
+          if (activeItem) updatePlayerInfo(activeItem);
+        }
       });
     }
 
@@ -2169,7 +2498,7 @@
 
       const icon = document.createElement('span');
       icon.className = `file-icon ${item.type}`;
-      icon.textContent = item.type === 'video' ? 'MP4' : 'MP3';
+      applyMediaIcon(icon, item);
 
       const details = document.createElement('div');
       details.className = 'file-details';
@@ -2266,7 +2595,9 @@
     function addFiles(files) {
       const allFiles = Array.from(files);
       const lrcFiles = allFiles.filter(isLrc);
-      const supported = allFiles.filter((file) => !isLrc(file) && isSupported(file));
+      const coverImages = allFiles.filter(isCoverImage);
+      const coverMap = buildCoverImageMap(coverImages);
+      const supported = allFiles.filter((file) => !isLrc(file) && !isCoverImage(file) && isSupported(file));
 
       const existingKeys = new Set(
         mediaItems.map((item) => getMediaFileKey(item.name, item.folder, item.size)),
@@ -2283,27 +2614,32 @@
         uniqueSupported.push(file);
       });
 
-      if (uniqueSupported.length === 0 && lrcFiles.length === 0) {
+      if (uniqueSupported.length === 0 && lrcFiles.length === 0 && coverImages.length === 0) {
         if (skipped.length > 0) {
           alert('所选文件均已存在，未添加重复项');
         } else {
-          alert('仅支持 MP4、MP3 和 LRC 字幕文件');
+          alert('仅支持 MP4、MP3、LRC 字幕和封面图片文件');
         }
         return;
       }
 
-      if (skipped.length > 0) {
+      const hasCoverOnly = uniqueSupported.length === 0 && lrcFiles.length === 0 && coverImages.length > 0;
+      if (skipped.length > 0 && !hasCoverOnly) {
         alert(`已跳过 ${skipped.length} 个重复文件：\n${skipped.join('\n')}`);
       }
 
       const addMedia = uniqueSupported.length
-        ? Promise.all(uniqueSupported.map((file) => addMediaFile(file))).then((items) => {
+        ? Promise.all(uniqueSupported.map((file) => {
+          const coverEntry = coverMap.get(getCoverLookupKeyFromFile(file));
+          return addMediaFile(file, coverEntry?.file || null);
+        })).then((items) => {
           items.forEach((item) => mediaItems.push(item));
         })
         : Promise.resolve();
 
       addMedia
         .then(() => (lrcFiles.length ? processLrcFiles(lrcFiles) : null))
+        .then(() => (coverImages.length ? processCoverImages(coverImages) : null))
         .then(() => {
           renderList();
         })
@@ -2319,7 +2655,7 @@
       dbDeleteFile(id)
         .then(() => {
           const [removed] = mediaItems.splice(index, 1);
-          URL.revokeObjectURL(removed.objectUrl);
+          revokeItemUrls(removed);
           removeSavedPosition(id);
           removeCompleted(id);
 
@@ -2354,11 +2690,10 @@
 
           const savedActiveId = Number(localStorage.getItem(ACTIVE_ID_KEY));
           if (savedActiveId && mediaItems.some((item) => item.id === savedActiveId)) {
-            activeId = savedActiveId;
-            renderList();
+            playItem(savedActiveId);
           }
 
-          return probeMissingDurations();
+          return probeMissingDurations().then(() => probeMissingThumbnails());
         })
         .catch(() => {
           alert('加载已保存文件失败');
@@ -2377,6 +2712,7 @@
           const ids = new Set(items.map((item) => item.id));
           items.forEach((item) => {
             URL.revokeObjectURL(item.objectUrl);
+            if (item.thumbnailUrl) URL.revokeObjectURL(item.thumbnailUrl);
             removeSavedPosition(item.id);
             removeCompleted(item.id);
           });
@@ -2406,7 +2742,7 @@
 
       dbClearAll()
         .then(() => {
-          mediaItems.forEach((item) => URL.revokeObjectURL(item.objectUrl));
+          mediaItems.forEach((item) => revokeItemUrls(item));
           mediaItems.length = 0;
           searchInput.value = '';
           searchQuery = '';
@@ -2875,9 +3211,10 @@ AudioPlayer/
       e.target.value = '';
     });
 
+    window.addEventListener('pagehide', saveCurrentPosition);
     window.addEventListener('beforeunload', () => {
       saveCurrentPosition();
-      mediaItems.forEach((item) => URL.revokeObjectURL(item.objectUrl));
+      mediaItems.forEach((item) => revokeItemUrls(item));
     });
   </script>
 

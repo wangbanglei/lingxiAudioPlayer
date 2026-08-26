@@ -10,6 +10,8 @@
  * - playlistId 通过命令行传入（必填）
  * - 直接下载歌单中的全部歌曲（自动翻页加载）
  * - 歌曲保存到「当前目录/歌单名/歌名-歌手名.mp3」
+ * - 歌词保存到「当前目录/歌单名/歌名-歌手名.lrc」
+ * - 封面保存到「当前目录/歌单名/歌名-歌手名.jpg」
  * - 本地已存在的完整文件会自动跳过
  * - Ctrl+C 取消时会删除当前未下载完成的临时文件
  */
@@ -19,6 +21,7 @@ const path = require('path');
 const { Readable } = require('stream');
 
 const TEMP_SUFFIX = '.part';
+const COVER_EXTENSIONS = ['.jpg', '.jpeg', '.png', '.webp'];
 
 /** 当前正在下载的任务，用于取消时清理 */
 let currentDownload = null;
@@ -284,6 +287,153 @@ async function getSongDownloadUrl(song) {
   return fallback;
 }
 
+/** 清理 LRC 歌词文本 */
+function cleanLrc(text) {
+  return String(text || '')
+    .replace(/^\uFEFF/, '')
+    .replace(/\r\n/g, '\n')
+    .trim();
+}
+
+/** 获取歌词下载地址 */
+async function getSongLyricUrl(song) {
+  if (song.lyricUrl) {
+    return song.lyricUrl;
+  }
+
+  const contentId = song.contentId;
+  const copyrightId = song.copyrightId;
+  if (!contentId || !copyrightId) return null;
+
+  const apiUrls = [
+    `https://app.c.nf.migu.cn/MIGUM3.0/strategy/pc/listen/v1.0?scene=&netType=01&resourceType=2&copyrightId=${copyrightId}&contentId=${contentId}&toneFlag=PQ`,
+    `https://music.migu.cn/v3/api/music/audioPlayer/getLyric?copyrightId=${copyrightId}&contentId=${contentId}`,
+  ];
+
+  for (const apiUrl of apiUrls) {
+    try {
+      const data = await miguGet(apiUrl, { Referer: 'https://music.migu.cn/' });
+      const lyricUrl =
+        data?.data?.lrcUrl ||
+        data?.data?.lyricUrl ||
+        data?.lyricUrl ||
+        data?.lrcUrl;
+      if (lyricUrl) return lyricUrl;
+    } catch {
+      // 尝试下一个接口
+    }
+  }
+
+  return null;
+}
+
+/** 获取歌曲 LRC 歌词内容 */
+async function getSongLyric(song) {
+  const lyricUrl = await getSongLyricUrl(song);
+  if (!lyricUrl) return null;
+
+  const res = await fetch(lyricUrl, {
+    headers: {
+      'User-Agent': DEFAULT_HEADERS['User-Agent'],
+      Referer: 'https://y.migu.cn/',
+    },
+    redirect: 'follow',
+  });
+
+  if (!res.ok) {
+    throw new Error(`歌词下载失败 ${res.status}`);
+  }
+
+  const text = cleanLrc(await res.text());
+  return text || null;
+}
+
+/** 保存歌词文件 */
+async function saveLyricFile(destPath, content) {
+  await fs.promises.mkdir(path.dirname(destPath), { recursive: true });
+  await fs.promises.writeFile(destPath, content, 'utf8');
+}
+
+/** 规范化封面 URL */
+function normalizeCoverUrl(url) {
+  if (!url) return null;
+  const value = String(url).trim();
+  if (!value) return null;
+  if (value.startsWith('http://') || value.startsWith('https://')) return value;
+  if (value.startsWith('//')) return `https:${value}`;
+  return `https://d.musicapp.migu.cn${value.startsWith('/') ? '' : '/'}${value}`;
+}
+
+/** 从歌曲信息中提取封面地址 */
+function getSongCoverUrl(song) {
+  const imgItems = song.imgItems || [];
+  const fromItems = imgItems.length ? imgItems[imgItems.length - 1]?.img : '';
+  const albums = song.albums || [];
+  const fromAlbum = song.album?.img || albums[0]?.img || albums[0]?.imgItems?.[0]?.img;
+
+  const url = fromItems || song.img3 || song.img2 || song.img1 || fromAlbum || '';
+  return normalizeCoverUrl(url);
+}
+
+/** 根据 URL 或 Content-Type 推断封面扩展名 */
+function resolveCoverExtension(url, contentType = '') {
+  const type = contentType.toLowerCase();
+  if (type.includes('png')) return '.png';
+  if (type.includes('webp')) return '.webp';
+  if (type.includes('jpeg') || type.includes('jpg')) return '.jpg';
+
+  try {
+    const ext = path.extname(new URL(url).pathname).toLowerCase();
+    if (ext === '.jpeg') return '.jpg';
+    if (COVER_EXTENSIONS.includes(ext)) return ext;
+  } catch {
+    // ignore invalid url
+  }
+
+  return '.jpg';
+}
+
+/** 查找已存在的封面文件 */
+function findExistingCover(basePathWithoutExt) {
+  for (const ext of COVER_EXTENSIONS) {
+    const filePath = `${basePathWithoutExt}${ext === '.jpeg' ? '.jpg' : ext}`;
+    const candidates =
+      ext === '.jpg' ? [`${basePathWithoutExt}.jpg`, `${basePathWithoutExt}.jpeg`] : [filePath];
+    for (const candidate of candidates) {
+      if (isFileComplete(candidate)) return candidate;
+    }
+  }
+  return null;
+}
+
+/** 下载歌曲封面缩略图 */
+async function downloadCoverImage(url, basePathWithoutExt, abortController) {
+  const res = await fetch(url, {
+    headers: {
+      'User-Agent': DEFAULT_HEADERS['User-Agent'],
+      Referer: 'https://music.migu.cn/',
+    },
+    redirect: 'follow',
+    signal: abortController?.signal,
+  });
+
+  if (!res.ok) {
+    throw new Error(`封面下载失败 ${res.status}`);
+  }
+
+  const ext = resolveCoverExtension(url, res.headers.get('content-type') || '');
+  const destPath = `${basePathWithoutExt}${ext}`;
+  const buffer = Buffer.from(await res.arrayBuffer());
+
+  if (!buffer.length) {
+    throw new Error('封面文件为空');
+  }
+
+  await fs.promises.mkdir(path.dirname(destPath), { recursive: true });
+  await fs.promises.writeFile(destPath, buffer);
+  return destPath;
+}
+
 /** 格式化字节大小 */
 function formatBytes(bytes) {
   if (bytes < 1024) return `${bytes} B`;
@@ -390,62 +540,171 @@ async function main() {
 
   let success = 0;
   let failed = 0;
+  let lyricSuccess = 0;
+  let lyricFailed = 0;
+  let lyricSkipped = 0;
+  let coverSuccess = 0;
+  let coverFailed = 0;
+  let coverSkipped = 0;
 
   for (let i = 0; i < songs.length; i++) {
     const song = songs[i];
     const songName = getSongName(song);
     const singers = getSingers(song);
-    const fileName = sanitizeFilename(`${songName}-${singers}.mp3`);
-    const filePath = path.join(saveDir, fileName);
+    const baseName = sanitizeFilename(`${songName}-${singers}`);
+    const basePath = path.join(saveDir, baseName);
+    const filePath = `${basePath}.mp3`;
+    const lyricPath = `${basePath}.lrc`;
+    const existingCoverPath = findExistingCover(basePath);
 
     const label = `[${i + 1}/${songs.length}] ${songName} - ${singers}`;
+    const mp3Exists = isFileComplete(filePath);
+    const lrcExists = isFileComplete(lyricPath);
+    const coverExists = !!existingCoverPath;
 
-    if (isFileComplete(filePath)) {
-      console.log(`${label} ... 已存在，跳过`);
+    if (mp3Exists && lrcExists && coverExists) {
+      console.log(`${label} ... 音频、歌词和封面已存在，跳过`);
       success += 1;
+      lyricSkipped += 1;
+      coverSkipped += 1;
       continue;
+    }
+
+    let mp3Ok = mp3Exists;
+    let lrcOk = lrcExists;
+    let coverOk = coverExists;
+    let lyricErrorMsg = '';
+    let coverErrorMsg = '';
+
+    if (mp3Exists) {
+      console.log(`${label} ... 音频已存在，跳过下载`);
     }
 
     const abortController = new AbortController();
 
     try {
-      const downloadUrl = await getSongDownloadUrl(song);
-      if (!downloadUrl) {
-        console.log(`${label} ... 无法获取下载链接`);
-        failed += 1;
-        continue;
+      if (!mp3Exists) {
+        const downloadUrl = await getSongDownloadUrl(song);
+        if (!downloadUrl) {
+          console.log(`${label} ... 无法获取下载链接`);
+          failed += 1;
+          mp3Ok = false;
+        } else {
+          await downloadFile(
+            downloadUrl,
+            filePath,
+            ({ downloaded, total }) => {
+              let progressText;
+              if (total > 0) {
+                const percent = ((downloaded / total) * 100).toFixed(1);
+                progressText = `${percent}% (${formatBytes(downloaded)}/${formatBytes(total)})`;
+              } else {
+                progressText = formatBytes(downloaded);
+              }
+              process.stdout.write(`\r${label} ... ${progressText}`);
+            },
+            abortController
+          );
+          mp3Ok = true;
+        }
       }
 
-      await downloadFile(
-        downloadUrl,
-        filePath,
-        ({ downloaded, total }) => {
-          let progressText;
-          if (total > 0) {
-            const percent = ((downloaded / total) * 100).toFixed(1);
-            progressText = `${percent}% (${formatBytes(downloaded)}/${formatBytes(total)})`;
+      if (!lrcExists) {
+        try {
+          const lyric = await getSongLyric(song);
+          if (lyric) {
+            await saveLyricFile(lyricPath, lyric);
+            lrcOk = true;
           } else {
-            progressText = formatBytes(downloaded);
+            lrcOk = false;
           }
-          process.stdout.write(`\r${label} ... ${progressText}`);
-        },
-        abortController
-      );
-      console.log(`\r${label} ... 完成`);
-      success += 1;
+        } catch (err) {
+          lrcOk = false;
+          lyricErrorMsg = err.message;
+        }
+      }
+
+      if (!coverExists) {
+        try {
+          const coverUrl = getSongCoverUrl(song);
+          if (coverUrl) {
+            await downloadCoverImage(coverUrl, basePath, abortController);
+            coverOk = true;
+          } else {
+            coverOk = false;
+          }
+        } catch (err) {
+          coverOk = false;
+          coverErrorMsg = err.message;
+        }
+      }
+
+      const lyricStatus = lrcExists
+        ? '歌词已存在'
+        : lrcOk
+          ? '歌词已保存'
+          : lyricErrorMsg
+            ? `歌词失败: ${lyricErrorMsg}`
+            : '无歌词';
+
+      const coverStatus = coverExists
+        ? '封面已存在'
+        : coverOk
+          ? '封面已保存'
+          : coverErrorMsg
+            ? `封面失败: ${coverErrorMsg}`
+            : '无封面';
+
+      if (mp3Ok) {
+        success += 1;
+        const summary = `${lyricStatus}，${coverStatus}`;
+        if (mp3Exists) {
+          console.log(`${label} ... ${summary}`);
+        } else {
+          console.log(`\r${label} ... 完成，${summary}`);
+        }
+      } else if (lrcOk || coverOk) {
+        console.log(`${label} ... 音频失败，${lyricStatus}，${coverStatus}`);
+      }
+
+      if (lrcExists) {
+        lyricSkipped += 1;
+      } else if (lrcOk) {
+        lyricSuccess += 1;
+      } else {
+        lyricFailed += 1;
+      }
+
+      if (coverExists) {
+        coverSkipped += 1;
+      } else if (coverOk) {
+        coverSuccess += 1;
+      } else {
+        coverFailed += 1;
+      }
     } catch (err) {
       if (abortController.signal.aborted) {
         throw err;
       }
-      console.log(`\r${label} ... 失败: ${err.message}`);
-      failed += 1;
+      if (!mp3Ok) {
+        console.log(`\r${label} ... 失败: ${err.message}`);
+        failed += 1;
+      }
+      if (!lrcExists && !lrcOk) {
+        lyricFailed += 1;
+      }
+      if (!coverExists && !coverOk) {
+        coverFailed += 1;
+      }
     }
 
     // 避免请求过快
     await sleep(300);
   }
 
-  console.log(`\n下载结束: 成功 ${success} 首, 失败 ${failed} 首`);
+  console.log(`\n下载结束: 音频成功 ${success} 首, 失败 ${failed} 首`);
+  console.log(`歌词: 保存 ${lyricSuccess} 首, 跳过 ${lyricSkipped} 首, 失败/无歌词 ${lyricFailed} 首`);
+  console.log(`封面: 保存 ${coverSuccess} 首, 跳过 ${coverSkipped} 首, 失败/无封面 ${coverFailed} 首`);
   console.log(`文件保存在: ${saveDir}`);
 }
 
