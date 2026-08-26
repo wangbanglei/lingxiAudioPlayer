@@ -333,18 +333,60 @@
       display: block;
     }
 
-    .sidebar-toolbar {
+    .sidebar-search {
       display: flex;
       align-items: center;
-      justify-content: space-between;
-      gap: 8px;
+      gap: 4px;
       padding: 0 16px 8px;
       background: #0b1220;
     }
 
-    .toolbar-label {
-      font-size: 0.75rem;
+    .search-input {
+      flex: 1;
+      min-width: 0;
+      height: 28px;
+      padding: 0 10px;
+      border: 1px solid #334155;
+      border-radius: 6px;
+      background: #1e293b;
+      color: #e2e8f0;
+      font-size: 0.8rem;
+      outline: none;
+    }
+
+    .search-input::placeholder { color: #64748b; }
+
+    .search-input:hover { border-color: #475569; }
+
+    .search-input:focus { border-color: #3b82f6; }
+
+    .search-input::-webkit-search-cancel-button { display: none; }
+
+    .btn-search-clear {
+      flex-shrink: 0;
+      width: 28px;
+      height: 28px;
+      padding: 0;
+      border: none;
+      border-radius: 6px;
+      background: transparent;
+      color: #94a3b8;
+      font-size: 1.1rem;
+      line-height: 1;
+      cursor: pointer;
+    }
+
+    .btn-search-clear:hover {
+      background: rgba(51, 65, 85, 0.5);
+      color: #e2e8f0;
+    }
+
+    .file-list-empty {
+      text-align: center;
       color: #64748b;
+      font-size: 0.85rem;
+      padding: 32px 12px;
+      line-height: 1.6;
     }
 
     .file-list {
@@ -1051,16 +1093,17 @@
           <button type="button" class="btn-add btn-icon" id="btnAddFolder" title="添加文件夹" aria-label="添加文件夹">
             <img class="btn-icon-img" id="btnAddFolderIcon" src="img/文件夹.svg" alt="">
           </button>
+          <button type="button" class="btn-sort btn-icon" id="btnSort" title="按添加顺序" aria-label="切换排序">
+            <img class="btn-icon-img" id="btnSortIcon" src="img/sort.svg" alt="">
+          </button>
           <button type="button" class="btn-clear btn-icon" id="btnClear" title="清空全部" aria-label="清空全部">
             <img class="btn-icon-img" id="btnClearIcon" src="img/清空.svg" alt="">
           </button>
         </div>
       </div>
-      <div class="sidebar-toolbar">
-        <span class="toolbar-label">排序</span>
-        <button type="button" class="btn-sort btn-icon" id="btnSort" title="按添加顺序" aria-label="切换排序">
-          <img class="btn-icon-img" id="btnSortIcon" src="img/sort.svg" alt="">
-        </button>
+      <div class="sidebar-search">
+        <input type="search" class="search-input" id="searchInput" placeholder="搜索文件名或文件夹…" autocomplete="off" aria-label="搜索媒体文件" />
+        <button type="button" class="btn-search-clear" id="btnSearchClear" title="清除搜索" aria-label="清除搜索" hidden>×</button>
       </div>
       <ul class="file-list" id="fileList"></ul>
       <input type="file" id="fileInput" accept="audio/*,video/*,.mp3,.mp4,.lrc" multiple />
@@ -1151,6 +1194,8 @@
     const btnClear = document.getElementById('btnClear');
     const btnSort = document.getElementById('btnSort');
     const btnSortIcon = document.getElementById('btnSortIcon');
+    const searchInput = document.getElementById('searchInput');
+    const btnSearchClear = document.getElementById('btnSearchClear');
     const emptyState = document.getElementById('emptyState');
     const playerWrap = document.getElementById('playerWrap');
     const videoPlayer = document.getElementById('videoPlayer');
@@ -1212,6 +1257,7 @@
     const DB_VERSION = 2;
     const STORE_NAME = 'mediaFiles';
     let sortOrder = localStorage.getItem(SORT_KEY) || 'added';
+    let searchQuery = '';
     let collapsedFolders = new Set();
     let isResizing = false;
     let dbPromise = null;
@@ -1233,6 +1279,14 @@
       const parts = path.split('/');
       parts.pop();
       return parts.join('/') || UNGROUPED_FOLDER;
+    }
+
+    function getMediaFileKey(name, folder, size) {
+      return `${folder || UNGROUPED_FOLDER}\0${name}\0${size}`;
+    }
+
+    function getFileKey(file) {
+      return getMediaFileKey(file.name, getFolderFromFile(file), file.size);
     }
 
     function readDirectoryEntry(entry, basePath = '') {
@@ -1976,6 +2030,13 @@
 
     function initKeyboardShortcuts() {
       document.addEventListener('keydown', (e) => {
+        if ((e.ctrlKey || e.metaKey) && e.key === 'f') {
+          e.preventDefault();
+          searchInput.focus();
+          searchInput.select();
+          return;
+        }
+
         if (isShortcutBlocked(e.target)) return;
 
         switch (e.code) {
@@ -2150,10 +2211,30 @@
     }
 
     function getDisplayItems() {
-      const items = [...mediaItems];
+      const query = searchQuery.trim().toLowerCase();
+      let items = mediaItems;
+      if (query) {
+        items = mediaItems.filter((item) => {
+          const name = item.name.toLowerCase();
+          const folder = (item.folder || UNGROUPED_FOLDER).toLowerCase();
+          return name.includes(query) || folder.includes(query);
+        });
+      }
+      items = [...items];
       if (sortOrder === 'name-asc') return items.sort((a, b) => compareFileName(a, b));
       if (sortOrder === 'name-desc') return items.sort((a, b) => compareFileName(b, a));
       return items;
+    }
+
+    function updateSearchClearButton() {
+      btnSearchClear.hidden = !searchQuery;
+    }
+
+    function setSearchQuery(value) {
+      searchQuery = value;
+      updateSearchClearButton();
+      renderList();
+      updateTrackButtons();
     }
 
     function updateSortButton() {
@@ -2187,13 +2268,36 @@
       const lrcFiles = allFiles.filter(isLrc);
       const supported = allFiles.filter((file) => !isLrc(file) && isSupported(file));
 
-      if (supported.length === 0 && lrcFiles.length === 0) {
-        alert('仅支持 MP4、MP3 和 LRC 字幕文件');
+      const existingKeys = new Set(
+        mediaItems.map((item) => getMediaFileKey(item.name, item.folder, item.size)),
+      );
+      const uniqueSupported = [];
+      const skipped = [];
+      supported.forEach((file) => {
+        const key = getFileKey(file);
+        if (existingKeys.has(key)) {
+          skipped.push(file.name);
+          return;
+        }
+        existingKeys.add(key);
+        uniqueSupported.push(file);
+      });
+
+      if (uniqueSupported.length === 0 && lrcFiles.length === 0) {
+        if (skipped.length > 0) {
+          alert('所选文件均已存在，未添加重复项');
+        } else {
+          alert('仅支持 MP4、MP3 和 LRC 字幕文件');
+        }
         return;
       }
 
-      const addMedia = supported.length
-        ? Promise.all(supported.map((file) => addMediaFile(file))).then((items) => {
+      if (skipped.length > 0) {
+        alert(`已跳过 ${skipped.length} 个重复文件：\n${skipped.join('\n')}`);
+      }
+
+      const addMedia = uniqueSupported.length
+        ? Promise.all(uniqueSupported.map((file) => addMediaFile(file))).then((items) => {
           items.forEach((item) => mediaItems.push(item));
         })
         : Promise.resolve();
@@ -2304,6 +2408,9 @@
         .then(() => {
           mediaItems.forEach((item) => URL.revokeObjectURL(item.objectUrl));
           mediaItems.length = 0;
+          searchInput.value = '';
+          searchQuery = '';
+          updateSearchClearButton();
           activeId = null;
           saveActiveId();
           clearAllPositions();
@@ -2321,6 +2428,17 @@
     function renderList() {
       fileList.innerHTML = '';
       const groups = getGroupedItems();
+      const isSearching = searchQuery.trim().length > 0;
+
+      if (groups.length === 0) {
+        if (isSearching && mediaItems.length > 0) {
+          const empty = document.createElement('li');
+          empty.className = 'file-list-empty';
+          empty.textContent = '无匹配结果';
+          fileList.appendChild(empty);
+        }
+        return;
+      }
 
       if (!shouldShowFolderGroups(groups)) {
         groups[0]?.items.forEach((item) => {
@@ -2331,7 +2449,8 @@
 
       groups.forEach(({ folder, items }) => {
         const group = document.createElement('li');
-        group.className = 'folder-group' + (collapsedFolders.has(folder) ? ' collapsed' : '');
+        const collapsed = !isSearching && collapsedFolders.has(folder);
+        group.className = 'folder-group' + (collapsed ? ' collapsed' : '');
 
         const header = document.createElement('div');
         header.className = 'folder-header';
@@ -2739,6 +2858,14 @@ AudioPlayer/
     btnAddFolder.addEventListener('click', () => folderInput.click());
     btnClear.addEventListener('click', clearAllItems);
     btnSort.addEventListener('click', toggleSort);
+    searchInput.addEventListener('input', (e) => {
+      setSearchQuery(e.target.value);
+    });
+    btnSearchClear.addEventListener('click', () => {
+      searchInput.value = '';
+      setSearchQuery('');
+      searchInput.focus();
+    });
     fileInput.addEventListener('change', (e) => {
       if (e.target.files.length) addFiles(e.target.files);
       e.target.value = '';
