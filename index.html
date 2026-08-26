@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>X-insight</title>
+  <title>聆息音乐播放器</title>
   <link rel="icon" type="image/svg+xml" href="img/logo.svg">
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -26,6 +26,178 @@
       display: flex;
       align-items: center;
       gap: 12px;
+    }
+
+    .header-brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex: 1;
+      min-width: 0;
+    }
+
+    .btn-help {
+      flex-shrink: 0;
+      width: 28px;
+      height: 28px;
+      border: none;
+      border-radius: 50%;
+      background: #1e293b;
+      color: #94a3b8;
+      font-size: 0.95rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.15s, color 0.15s;
+    }
+
+    .btn-help:hover {
+      background: #334155;
+      color: #e2e8f0;
+    }
+
+    .help-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 1000;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+      background: rgba(15, 23, 42, 0.72);
+      backdrop-filter: blur(4px);
+    }
+
+    .help-overlay.open { display: flex; }
+
+    .help-dialog {
+      width: min(720px, 100%);
+      max-height: min(85vh, 900px);
+      display: flex;
+      flex-direction: column;
+      background: #1e293b;
+      border: 1px solid #334155;
+      border-radius: 14px;
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.45);
+      overflow: hidden;
+    }
+
+    .help-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 16px 20px;
+      border-bottom: 1px solid #334155;
+      flex-shrink: 0;
+    }
+
+    .help-header h2 {
+      font-size: 1.05rem;
+      font-weight: 600;
+    }
+
+    .help-close {
+      width: 28px;
+      height: 28px;
+      border: none;
+      border-radius: 6px;
+      background: transparent;
+      color: #94a3b8;
+      font-size: 1.25rem;
+      line-height: 1;
+      cursor: pointer;
+    }
+
+    .help-close:hover {
+      background: #334155;
+      color: #e2e8f0;
+    }
+
+    .help-body {
+      padding: 20px 24px 24px;
+      overflow-y: auto;
+      font-size: 0.9rem;
+      line-height: 1.7;
+      color: #cbd5e1;
+      scrollbar-width: thin;
+      scrollbar-color: #334155 transparent;
+    }
+
+    .help-body::-webkit-scrollbar { width: 6px; }
+    .help-body::-webkit-scrollbar-track { background: transparent; }
+    .help-body::-webkit-scrollbar-thumb { background: #334155; border-radius: 3px; }
+
+    .help-body h1,
+    .help-body h2,
+    .help-body h3 {
+      color: #f1f5f9;
+      margin: 1.4em 0 0.6em;
+      line-height: 1.4;
+    }
+
+    .help-body h1 { font-size: 1.35rem; margin-top: 0; }
+    .help-body h2 { font-size: 1.1rem; border-bottom: 1px solid #334155; padding-bottom: 0.35em; }
+    .help-body h3 { font-size: 0.98rem; color: #e2e8f0; }
+
+    .help-body p { margin: 0.6em 0; }
+    .help-body ul { margin: 0.6em 0; padding-left: 1.4em; }
+    .help-body li { margin: 0.35em 0; }
+    .help-body strong { color: #f8fafc; font-weight: 600; }
+
+    .help-body blockquote {
+      margin: 0.8em 0;
+      padding: 10px 14px;
+      border-left: 3px solid #2563eb;
+      background: rgba(37, 99, 235, 0.1);
+      border-radius: 0 8px 8px 0;
+      color: #94a3b8;
+    }
+
+    .help-body pre {
+      margin: 0.8em 0;
+      padding: 12px 14px;
+      background: #0f172a;
+      border: 1px solid #334155;
+      border-radius: 8px;
+      overflow-x: auto;
+      font-size: 0.82rem;
+      line-height: 1.5;
+      color: #94a3b8;
+    }
+
+    .help-body code {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      font-size: 0.88em;
+      background: #0f172a;
+      padding: 0.1em 0.35em;
+      border-radius: 4px;
+      color: #7dd3fc;
+    }
+
+    .help-body pre code {
+      background: none;
+      padding: 0;
+      color: inherit;
+    }
+
+    .help-body table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 0.8em 0;
+      font-size: 0.88rem;
+    }
+
+    .help-body th,
+    .help-body td {
+      border: 1px solid #334155;
+      padding: 8px 12px;
+      text-align: left;
+    }
+
+    .help-body th {
+      background: #0f172a;
+      color: #e2e8f0;
+      font-weight: 600;
     }
 
     .header-logo {
@@ -763,9 +935,22 @@
 </head>
 <body>
   <header class="header">
-    <img class="header-logo" id="headerLogo" src="img/logo.svg" alt="本地音视频播放器">
-    <h1>本地音视频播放器</h1>
+    <div class="header-brand">
+      <img class="header-logo" id="headerLogo" src="img/logo.svg" alt="聆息音乐播放器">
+      <h1>聆息音乐播放器</h1>
+    </div>
+    <button type="button" class="btn-help" id="btnHelp" title="使用说明" aria-label="使用说明">?</button>
   </header>
+
+  <div class="help-overlay" id="helpOverlay" aria-hidden="true">
+    <div class="help-dialog" role="dialog" aria-modal="true" aria-labelledby="helpTitle">
+      <div class="help-header">
+        <h2 id="helpTitle">使用说明</h2>
+        <button type="button" class="help-close" id="btnHelpClose" title="关闭" aria-label="关闭">×</button>
+      </div>
+      <div class="help-body" id="helpBody">加载中…</div>
+    </div>
+  </div>
   <div class="layout">
     <aside class="sidebar" id="sidebar">
       <div class="sidebar-header">
@@ -1986,7 +2171,260 @@
       });
     }
 
+    function initHelpModal() {
+      const btnHelp = document.getElementById('btnHelp');
+      const btnHelpClose = document.getElementById('btnHelpClose');
+      const helpOverlay = document.getElementById('helpOverlay');
+      const helpBody = document.getElementById('helpBody');
+      let helpLoaded = false;
+
+      const readmeFallback = `# 聆息音乐播放器
+
+聆息是一个纯前端的本地音乐播放器，单文件即可运行，无需安装、无需联网。支持 MP4 / MP3 播放、LRC 字幕同步、播放进度记忆与媒体库持久化。
+
+## 功能介绍
+
+### 媒体管理
+
+- 支持添加 **MP4、MP3** 音视频文件
+- 支持导入 **LRC 字幕**（按文件名自动匹配同名媒体）
+- 拖拽文件到左侧目录，或点击「添加」按钮选择文件
+- 列表显示文件大小、时长、上次播放位置、已播完状态、字幕标记
+- 三种排序方式：默认（添加顺序）、名称升序、名称降序
+- 侧边栏宽度可拖拽调整（180–600px），刷新后保持
+
+### 播放控制
+
+- 自定义播放界面：进度条、播放/暂停、±10 秒、上一曲/下一曲
+- 音量调节与静音
+- 播放倍速：0.5x ~ 2x
+- 音频显示波形动画，视频按 16:9 比例展示
+- LRC 字幕实时滚动同步
+- 可选「播放结束后自动下一首」
+
+### 数据持久化
+
+- **IndexedDB** 保存媒体文件，刷新页面后文件仍在
+- **localStorage** 记录：
+  - 每个文件的播放进度
+  - 已播完标记
+  - 当前选中文件、排序方式、音量、倍速、侧边栏宽度等
+
+## 使用方法
+
+1. 用浏览器直接打开 \`index.html\`
+2. 将 MP4 / MP3 / LRC 文件拖入左侧「媒体目录」，或点击添加按钮选择文件
+3. 在列表中点击文件开始播放
+4. 使用底部控制栏或快捷键操作播放
+
+> 列表为空时，点击空白区域可快速打开文件选择器；已有文件时请点击「添加」按钮。
+
+## 快捷键
+
+| 快捷键 | 功能 |
+|--------|------|
+| \`Space\` | 播放 / 暂停 |
+| \`←\` | 后退 10 秒 |
+| \`→\` | 前进 10 秒 |
+| \`PageUp\` | 上一曲 |
+| \`PageDown\` | 下一曲 |
+
+鼠标悬停在操作按钮上可查看对应提示。
+
+## 设计说明
+
+- **单文件架构**：所有逻辑、样式、资源内嵌于 \`index.html\`，部署简单，双击即用
+- **本地优先**：文件与播放数据均保存在浏览器本地，不上传服务器
+- **深色主题**：适配长时间观看/收听场景
+- **渐进增强**：空列表引导、播放状态反馈、列表元信息一目了然
+
+## 项目结构
+
+\`\`\`
+AudioPlayer/
+├── index.html      # 主程序（单页应用）
+├── img/            # 图标资源
+│   ├── logo.svg
+│   ├── upload.svg
+│   ├── 清空.svg
+│   ├── sort.svg
+│   ├── 操作-排序-升序.svg
+│   └── 操作-排序-降序.svg
+└── README.md       # 项目说明
+\`\`\`
+
+## 技术栈
+
+- HTML5 + CSS3 + 原生 JavaScript
+- IndexedDB（媒体文件存储）
+- localStorage（用户偏好与播放状态）
+- File API / Blob URL（本地文件读取与播放）
+
+## 浏览器兼容
+
+建议使用现代浏览器（Chrome、Edge、Firefox 等）。需支持 IndexedDB 与 HTML5 音视频播放。`;
+
+      function escapeHtml(text) {
+        return text
+          .replace(/&/g, '&amp;')
+          .replace(/</g, '&lt;')
+          .replace(/>/g, '&gt;');
+      }
+
+      function inlineMarkdown(text) {
+        return escapeHtml(text)
+          .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+          .replace(/`([^`]+)`/g, '<code>$1</code>');
+      }
+
+      function renderMarkdown(md) {
+        const lines = md.replace(/\r\n/g, '\n').split('\n');
+        let html = '';
+        let inCode = false;
+        let codeLines = [];
+        let inList = false;
+        let tableLines = [];
+
+        const closeList = () => {
+          if (inList) {
+            html += '</ul>';
+            inList = false;
+          }
+        };
+
+        const flushTable = () => {
+          if (!tableLines.length) return;
+          const rows = tableLines.filter((line) => !/^\|[-\s:|]+\|$/.test(line.trim()));
+          tableLines = [];
+          if (!rows.length) return;
+
+          html += '<table>';
+          rows.forEach((row, index) => {
+            const cells = row.trim().replace(/^\||\|$/g, '').split('|').map((cell) => cell.trim());
+            const tag = index === 0 ? 'th' : 'td';
+            if (index === 0) html += '<thead><tr>';
+            else if (index === 1) html += '<tbody><tr>';
+            else html += '<tr>';
+            html += cells.map((cell) => `<${tag}>${inlineMarkdown(cell)}</${tag}>`).join('');
+            html += '</tr>';
+            if (index === 0) html += '</thead>';
+          });
+          html += '</tbody></table>';
+        };
+
+        lines.forEach((line) => {
+          if (line.startsWith('```')) {
+            closeList();
+            flushTable();
+            if (!inCode) {
+              inCode = true;
+              codeLines = [];
+            } else {
+              html += `<pre><code>${escapeHtml(codeLines.join('\n'))}</code></pre>`;
+              inCode = false;
+            }
+            return;
+          }
+
+          if (inCode) {
+            codeLines.push(line);
+            return;
+          }
+
+          if (line.trim().startsWith('|')) {
+            closeList();
+            tableLines.push(line);
+            return;
+          }
+
+          flushTable();
+
+          if (!line.trim()) {
+            closeList();
+            return;
+          }
+
+          if (line.startsWith('### ')) {
+            closeList();
+            html += `<h3>${inlineMarkdown(line.slice(4))}</h3>`;
+            return;
+          }
+
+          if (line.startsWith('## ')) {
+            closeList();
+            html += `<h2>${inlineMarkdown(line.slice(3))}</h2>`;
+            return;
+          }
+
+          if (line.startsWith('# ')) {
+            closeList();
+            html += `<h1>${inlineMarkdown(line.slice(2))}</h1>`;
+            return;
+          }
+
+          if (line.startsWith('> ')) {
+            closeList();
+            html += `<blockquote><p>${inlineMarkdown(line.slice(2))}</p></blockquote>`;
+            return;
+          }
+
+          if (line.startsWith('- ')) {
+            if (!inList) {
+              html += '<ul>';
+              inList = true;
+            }
+            html += `<li>${inlineMarkdown(line.slice(2))}</li>`;
+            return;
+          }
+
+          closeList();
+          html += `<p>${inlineMarkdown(line)}</p>`;
+        });
+
+        closeList();
+        flushTable();
+        if (inCode) {
+          html += `<pre><code>${escapeHtml(codeLines.join('\n'))}</code></pre>`;
+        }
+        return html;
+      }
+
+      async function loadHelpContent() {
+        if (helpLoaded) return;
+        try {
+          const res = await fetch('README.md');
+          if (!res.ok) throw new Error('fetch failed');
+          helpBody.innerHTML = renderMarkdown(await res.text());
+        } catch {
+          helpBody.innerHTML = renderMarkdown(readmeFallback);
+        }
+        helpLoaded = true;
+      }
+
+      function openHelp() {
+        loadHelpContent().then(() => {
+          helpOverlay.classList.add('open');
+          helpOverlay.setAttribute('aria-hidden', 'false');
+        });
+      }
+
+      function closeHelp() {
+        helpOverlay.classList.remove('open');
+        helpOverlay.setAttribute('aria-hidden', 'true');
+      }
+
+      btnHelp.addEventListener('click', openHelp);
+      btnHelpClose.addEventListener('click', closeHelp);
+      helpOverlay.addEventListener('click', (e) => {
+        if (e.target === helpOverlay) closeHelp();
+      });
+      document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && helpOverlay.classList.contains('open')) closeHelp();
+      });
+    }
+
     initSidebarResize();
+    initHelpModal();
     loadPositions();
     loadCompleted();
     initCustomPlayer();
