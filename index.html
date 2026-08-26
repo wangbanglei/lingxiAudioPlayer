@@ -339,6 +339,7 @@
       justify-content: space-between;
       gap: 8px;
       padding: 0 16px 8px;
+      background: #0b1220;
     }
 
     .toolbar-label {
@@ -349,9 +350,10 @@
     .file-list {
       flex: 1;
       overflow-y: auto;
-      padding: 8px 8px 12px;
+      padding: 0px 8px 12px;
       list-style: none;
       min-height: 0;
+      background: #0b1220;
       scrollbar-width: thin;
       scrollbar-color: #334155 transparent;
     }
@@ -374,7 +376,7 @@
     }
 
     .file-list:empty::after {
-      content: '拖拽 MP4 / MP3 / LRC 到此处\A 或点击添加';
+      content: '拖拽文件夹或音视频到此处\A 或点击添加 / 添加文件夹';
       white-space: pre;
       display: block;
       text-align: center;
@@ -383,6 +385,93 @@
       padding: 32px 12px;
       line-height: 1.6;
       cursor: pointer;
+    }
+
+    .folder-group {
+      margin-bottom: 4px;
+    }
+
+    .folder-header {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 8px 10px;
+      cursor: pointer;
+      user-select: none;
+      transition: background 0.15s;
+      position: sticky;
+      top: 0;
+      z-index: 2;
+      background: #0b1220;
+      box-shadow: 0 1px 0 #1e293b;
+    }
+
+    .folder-header:hover { background: #1e293b; }
+
+    .folder-chevron {
+      flex-shrink: 0;
+      width: 12px;
+      font-size: 0.7rem;
+      color: #64748b;
+      transition: transform 0.15s;
+    }
+
+    .folder-group.collapsed .folder-chevron {
+      transform: rotate(-90deg);
+    }
+
+    .folder-name {
+      flex: 1;
+      min-width: 0;
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: #94a3b8;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .folder-count {
+      flex-shrink: 0;
+      font-size: 0.72rem;
+      color: #64748b;
+    }
+
+    .btn-folder-clear {
+      flex-shrink: 0;
+      width: 22px;
+      height: 22px;
+      border: none;
+      border-radius: 4px;
+      background: transparent;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      transition: opacity 0.15s, background 0.15s;
+    }
+
+    .folder-header:hover .btn-folder-clear { opacity: 1; }
+
+    .btn-folder-clear img {
+      width: 14px;
+      height: 14px;
+      pointer-events: none;
+    }
+
+    .btn-folder-clear:hover { background: rgba(69, 10, 10, 0.5); }
+
+    .folder-items {
+      list-style: none;
+    }
+
+    .folder-group.collapsed .folder-items {
+      display: none;
+    }
+
+    .folder-items .file-item {
+      padding-left: 18px;
     }
 
     .file-item {
@@ -959,6 +1048,9 @@
           <button type="button" class="btn-add btn-icon" id="btnAdd" title="添加媒体文件" aria-label="添加媒体文件">
             <img class="btn-icon-img" id="btnAddIcon" src="img/upload.svg" alt="">
           </button>
+          <button type="button" class="btn-add btn-icon" id="btnAddFolder" title="添加文件夹" aria-label="添加文件夹">
+            <img class="btn-icon-img" id="btnAddFolderIcon" src="img/文件夹.svg" alt="">
+          </button>
           <button type="button" class="btn-clear btn-icon" id="btnClear" title="清空全部" aria-label="清空全部">
             <img class="btn-icon-img" id="btnClearIcon" src="img/清空.svg" alt="">
           </button>
@@ -972,13 +1064,14 @@
       </div>
       <ul class="file-list" id="fileList"></ul>
       <input type="file" id="fileInput" accept="audio/*,video/*,.mp3,.mp4,.lrc" multiple />
+      <input type="file" id="folderInput" webkitdirectory multiple hidden />
     </aside>
     <div class="sidebar-resizer" id="sidebarResizer" title="拖拽调整宽度"></div>
 
     <main class="main">
       <div class="empty-state" id="emptyState">
         <strong>从左侧目录选择文件播放</strong>
-        <p>或将音视频文件拖入左侧目录</p>
+        <p>或将文件夹 / 音视频拖入左侧目录</p>
       </div>
       <div class="player-wrap" id="playerWrap">
         <div class="player-card">
@@ -1052,7 +1145,9 @@
     const sidebarResizer = document.getElementById('sidebarResizer');
     const fileList = document.getElementById('fileList');
     const fileInput = document.getElementById('fileInput');
+    const folderInput = document.getElementById('folderInput');
     const btnAdd = document.getElementById('btnAdd');
+    const btnAddFolder = document.getElementById('btnAddFolder');
     const btnClear = document.getElementById('btnClear');
     const btnSort = document.getElementById('btnSort');
     const btnSortIcon = document.getElementById('btnSortIcon');
@@ -1093,6 +1188,7 @@
     const ICON_PATHS = {
       logo: 'img/logo.svg',
       add: 'img/upload.svg',
+      folder: 'img/文件夹.svg',
       clear: 'img/清空.svg',
       sortDefault: 'img/sort.svg',
       sortUp: 'img/操作-排序-升序.svg',
@@ -1109,13 +1205,91 @@
     const COMPLETED_KEY = 'audioplayer-completed';
     const PLAYBACK_RATE_KEY = 'audioplayer-playback-rate';
     const AUTO_PLAY_NEXT_KEY = 'audioplayer-auto-play-next';
+    const COLLAPSED_FOLDERS_KEY = 'audioplayer-collapsed-folders';
+    const UNGROUPED_FOLDER = '未分组';
     const PLAYBACK_RATES = [0.5, 0.75, 1, 1.25, 1.5, 1.75, 2];
     const DB_NAME = 'AudioPlayerDB';
-    const DB_VERSION = 1;
+    const DB_VERSION = 2;
     const STORE_NAME = 'mediaFiles';
     let sortOrder = localStorage.getItem(SORT_KEY) || 'added';
+    let collapsedFolders = new Set();
     let isResizing = false;
     let dbPromise = null;
+
+    try {
+      const savedCollapsed = JSON.parse(localStorage.getItem(COLLAPSED_FOLDERS_KEY) || '[]');
+      if (Array.isArray(savedCollapsed)) collapsedFolders = new Set(savedCollapsed);
+    } catch {
+      collapsedFolders = new Set();
+    }
+
+    function persistCollapsedFolders() {
+      localStorage.setItem(COLLAPSED_FOLDERS_KEY, JSON.stringify([...collapsedFolders]));
+    }
+
+    function getFolderFromFile(file) {
+      const path = file.webkitRelativePath || '';
+      if (!path || !path.includes('/')) return UNGROUPED_FOLDER;
+      const parts = path.split('/');
+      parts.pop();
+      return parts.join('/') || UNGROUPED_FOLDER;
+    }
+
+    function readDirectoryEntry(entry, basePath = '') {
+      return new Promise((resolve) => {
+        if (entry.isFile) {
+          entry.file((file) => {
+            const relativePath = basePath ? `${basePath}/${file.name}` : file.name;
+            try {
+              Object.defineProperty(file, 'webkitRelativePath', {
+                value: relativePath,
+                configurable: true,
+              });
+            } catch (_) {}
+            resolve([file]);
+          }, () => resolve([]));
+          return;
+        }
+
+        if (!entry.isDirectory) {
+          resolve([]);
+          return;
+        }
+
+        const dirPath = basePath ? `${basePath}/${entry.name}` : entry.name;
+        const reader = entry.createReader();
+        const entries = [];
+
+        const readBatch = () => {
+          reader.readEntries(async (batch) => {
+            if (!batch.length) {
+              const nested = await Promise.all(entries.map((child) => readDirectoryEntry(child, dirPath)));
+              resolve(nested.flat());
+              return;
+            }
+            entries.push(...batch);
+            readBatch();
+          }, () => resolve([]));
+        };
+
+        readBatch();
+      });
+    }
+
+    async function getFilesFromDrop(dataTransfer) {
+      const items = [...dataTransfer.items].filter((item) => item.kind === 'file');
+      if (!items.length) return [...dataTransfer.files];
+
+      const hasEntry = items.some((item) => typeof item.webkitGetAsEntry === 'function');
+      if (!hasEntry) return [...dataTransfer.files];
+
+      const groups = await Promise.all(items.map((item) => {
+        const entry = item.webkitGetAsEntry();
+        return entry ? readDirectoryEntry(entry) : [];
+      }));
+      const files = groups.flat();
+      return files.length ? files : [...dataTransfer.files];
+    }
 
     function openDB() {
       if (!dbPromise) {
@@ -1135,7 +1309,7 @@
       return dbPromise;
     }
 
-    function dbAddFile(file, duration = 0) {
+    function dbAddFile(file, duration = 0, folder = UNGROUPED_FOLDER) {
       return openDB().then((db) => new Promise((resolve, reject) => {
         const tx = db.transaction(STORE_NAME, 'readwrite');
         const store = tx.objectStore(STORE_NAME);
@@ -1146,6 +1320,7 @@
           mimeType: file.type || '',
           blob: file,
           duration: duration || 0,
+          folder: folder || UNGROUPED_FOLDER,
           addedAt: Date.now(),
         };
         const req = store.add(record);
@@ -1235,6 +1410,7 @@
         type: record.type,
         size: record.size,
         duration: record.duration || 0,
+        folder: record.folder || UNGROUPED_FOLDER,
         subtitleLrc: record.subtitleLrc || '',
         subtitleLines: parseLRC(record.subtitleLrc || ''),
       };
@@ -1342,7 +1518,9 @@
     function processLrcFiles(lrcFiles) {
       const tasks = lrcFiles.map((file) => file.text().then((text) => {
         const baseName = getBaseName(file.name);
-        const item = mediaItems.find((m) => getBaseName(m.name) === baseName);
+        const folder = getFolderFromFile(file);
+        const item = mediaItems.find((m) => getBaseName(m.name) === baseName && m.folder === folder)
+          || mediaItems.find((m) => getBaseName(m.name) === baseName);
         if (!item) return { matched: false, name: file.name };
         const lines = parseLRC(text);
         item.subtitleLrc = text;
@@ -1879,8 +2057,9 @@
 
     function addMediaFile(file) {
       const type = isVideo(file) ? 'video' : 'audio';
+      const folder = getFolderFromFile(file);
       return probeMediaDuration(file, type)
-        .then((duration) => dbAddFile(file, duration))
+        .then((duration) => dbAddFile(file, duration, folder))
         .then((record) => recordToItem(record));
     }
 
@@ -1898,6 +2077,76 @@
 
     function compareFileName(a, b) {
       return a.name.localeCompare(b.name, 'zh-CN', { sensitivity: 'base', numeric: true });
+    }
+
+    function getGroupedItems() {
+      const groups = new Map();
+      getDisplayItems().forEach((item) => {
+        const folder = item.folder || UNGROUPED_FOLDER;
+        if (!groups.has(folder)) groups.set(folder, []);
+        groups.get(folder).push(item);
+      });
+
+      const folderNames = [...groups.keys()].sort((a, b) => {
+        if (a === UNGROUPED_FOLDER) return 1;
+        if (b === UNGROUPED_FOLDER) return -1;
+        return a.localeCompare(b, 'zh-CN', { sensitivity: 'base', numeric: true });
+      });
+
+      return folderNames.map((folder) => ({ folder, items: groups.get(folder) }));
+    }
+
+    function shouldShowFolderGroups(groups) {
+      if (groups.length > 1) return true;
+      return groups.length === 1 && groups[0].folder !== UNGROUPED_FOLDER;
+    }
+
+    function createFileListItem(item) {
+      const li = document.createElement('li');
+      li.className = 'file-item' + (item.id === activeId ? ' active' : '');
+      li.dataset.id = item.id;
+
+      const icon = document.createElement('span');
+      icon.className = `file-icon ${item.type}`;
+      icon.textContent = item.type === 'video' ? 'MP4' : 'MP3';
+
+      const details = document.createElement('div');
+      details.className = 'file-details';
+
+      const name = document.createElement('div');
+      name.className = 'file-name';
+      name.textContent = item.name;
+      name.title = item.name;
+
+      const meta = document.createElement('div');
+      meta.className = 'file-meta';
+      meta.textContent = formatFileMeta(item);
+
+      details.appendChild(name);
+      details.appendChild(meta);
+
+      const removeBtn = document.createElement('button');
+      removeBtn.type = 'button';
+      removeBtn.className = 'btn-remove';
+      removeBtn.title = '移除';
+      removeBtn.textContent = '×';
+      removeBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        removeItem(item.id);
+      });
+
+      li.appendChild(icon);
+      li.appendChild(details);
+      li.appendChild(removeBtn);
+      li.addEventListener('click', () => playItem(item.id));
+      return li;
+    }
+
+    function toggleFolderGroup(folder) {
+      if (collapsedFolders.has(folder)) collapsedFolders.delete(folder);
+      else collapsedFolders.add(folder);
+      persistCollapsedFolders();
+      renderList();
     }
 
     function getDisplayItems() {
@@ -2012,6 +2261,41 @@
         });
     }
 
+    function clearFolderItems(folder) {
+      const items = mediaItems.filter((item) => (item.folder || UNGROUPED_FOLDER) === folder);
+      if (!items.length) return;
+
+      const label = folder === UNGROUPED_FOLDER ? '未分组' : folder;
+      if (!confirm(`确定清空「${label}」下的全部文件吗？此操作不可恢复。`)) return;
+
+      Promise.all(items.map((item) => dbDeleteFile(item.id)))
+        .then(() => {
+          const ids = new Set(items.map((item) => item.id));
+          items.forEach((item) => {
+            URL.revokeObjectURL(item.objectUrl);
+            removeSavedPosition(item.id);
+            removeCompleted(item.id);
+          });
+
+          for (let i = mediaItems.length - 1; i >= 0; i -= 1) {
+            if (ids.has(mediaItems[i].id)) mediaItems.splice(i, 1);
+          }
+
+          if (activeId !== null && ids.has(activeId)) {
+            activeId = null;
+            saveActiveId();
+            stopPlayback();
+            showIdleView();
+            clearPlayerInfo();
+          }
+
+          renderList();
+        })
+        .catch(() => {
+          alert('清空失败，请重试');
+        });
+    }
+
     function clearAllItems() {
       if (mediaItems.length === 0) return;
       if (!confirm('确定清空全部文件吗？此操作不可恢复。')) return;
@@ -2036,48 +2320,62 @@
 
     function renderList() {
       fileList.innerHTML = '';
+      const groups = getGroupedItems();
 
-      getDisplayItems().forEach((item) => {
-        const li = document.createElement('li');
-        li.className = 'file-item' + (item.id === activeId ? ' active' : '');
-        li.dataset.id = item.id;
+      if (!shouldShowFolderGroups(groups)) {
+        groups[0]?.items.forEach((item) => {
+          fileList.appendChild(createFileListItem(item));
+        });
+        return;
+      }
 
-        const icon = document.createElement('span');
-        icon.className = `file-icon ${item.type}`;
-        icon.textContent = item.type === 'video' ? 'MP4' : 'MP3';
+      groups.forEach(({ folder, items }) => {
+        const group = document.createElement('li');
+        group.className = 'folder-group' + (collapsedFolders.has(folder) ? ' collapsed' : '');
 
-        const details = document.createElement('div');
-        details.className = 'file-details';
+        const header = document.createElement('div');
+        header.className = 'folder-header';
+        header.title = folder;
 
-        const name = document.createElement('div');
-        name.className = 'file-name';
-        name.textContent = item.name;
-        name.title = item.name;
+        const chevron = document.createElement('span');
+        chevron.className = 'folder-chevron';
+        chevron.textContent = '▼';
 
-        const meta = document.createElement('div');
-        meta.className = 'file-meta';
-        meta.textContent = formatFileMeta(item);
+        const folderName = document.createElement('span');
+        folderName.className = 'folder-name';
+        folderName.textContent = folder;
 
-        details.appendChild(name);
-        details.appendChild(meta);
+        const count = document.createElement('span');
+        count.className = 'folder-count';
+        count.textContent = String(items.length);
 
-        const removeBtn = document.createElement('button');
-        removeBtn.type = 'button';
-        removeBtn.className = 'btn-remove';
-        removeBtn.title = '移除';
-        removeBtn.textContent = '×';
-        removeBtn.addEventListener('click', (e) => {
+        const clearBtn = document.createElement('button');
+        clearBtn.type = 'button';
+        clearBtn.className = 'btn-folder-clear';
+        clearBtn.title = '清空此文件夹';
+        clearBtn.setAttribute('aria-label', '清空此文件夹');
+        const clearIcon = document.createElement('img');
+        clearIcon.src = ICON_PATHS.clear;
+        clearIcon.alt = '';
+        clearBtn.appendChild(clearIcon);
+        clearBtn.addEventListener('click', (e) => {
           e.stopPropagation();
-          removeItem(item.id);
+          clearFolderItems(folder);
         });
 
-        li.appendChild(icon);
-        li.appendChild(details);
-        li.appendChild(removeBtn);
+        header.appendChild(chevron);
+        header.appendChild(folderName);
+        header.appendChild(count);
+        header.appendChild(clearBtn);
+        header.addEventListener('click', () => toggleFolderGroup(folder));
 
-        li.addEventListener('click', () => playItem(item.id));
+        const itemsEl = document.createElement('ul');
+        itemsEl.className = 'folder-items';
+        items.forEach((item) => itemsEl.appendChild(createFileListItem(item)));
 
-        fileList.appendChild(li);
+        group.appendChild(header);
+        group.appendChild(itemsEl);
+        fileList.appendChild(group);
       });
     }
 
@@ -2154,9 +2452,9 @@
         e.stopPropagation();
         dragCounter = 0;
         el.classList.remove('dragover');
-        if (e.dataTransfer.files.length) {
-          addFiles(e.dataTransfer.files);
-        }
+        getFilesFromDrop(e.dataTransfer).then((files) => {
+          if (files.length) addFiles(files);
+        });
       }, true);
     }
 
@@ -2438,9 +2736,14 @@ AudioPlayer/
       if (mediaItems.length === 0 && !e.target.closest('.file-item')) fileInput.click();
     });
     btnAdd.addEventListener('click', () => fileInput.click());
+    btnAddFolder.addEventListener('click', () => folderInput.click());
     btnClear.addEventListener('click', clearAllItems);
     btnSort.addEventListener('click', toggleSort);
     fileInput.addEventListener('change', (e) => {
+      if (e.target.files.length) addFiles(e.target.files);
+      e.target.value = '';
+    });
+    folderInput.addEventListener('change', (e) => {
       if (e.target.files.length) addFiles(e.target.files);
       e.target.value = '';
     });

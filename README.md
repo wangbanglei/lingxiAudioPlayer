@@ -66,6 +66,7 @@ AudioPlayer/
 ├── img/            # 图标资源
 │   ├── logo.svg
 │   ├── upload.svg
+│   ├── 文件夹.svg
 │   ├── 清空.svg
 │   ├── sort.svg
 │   ├── 操作-排序-升序.svg
