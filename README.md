@@ -63,7 +63,13 @@
 ```
 AudioPlayer/
 ├── index.html      # 主程序（单页应用）
-├── logo.png        # Logo 源文件（已 base64 内嵌到页面）
+├── img/            # 图标资源
+│   ├── logo.svg
+│   ├── upload.svg
+│   ├── 清空.svg
+│   ├── sort.svg
+│   ├── 操作-排序-升序.svg
+│   └── 操作-排序-降序.svg
 └── README.md       # 项目说明
 ```
 
