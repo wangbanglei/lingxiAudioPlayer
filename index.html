@@ -139,6 +139,59 @@
     .help-body h2 { font-size: 1.1rem; border-bottom: 1px solid #334155; padding-bottom: 0.35em; }
     .help-body h3 { font-size: 0.98rem; color: #e2e8f0; }
 
+    .help-body h4 {
+      font-size: 0.92rem;
+      color: #cbd5e1;
+      margin: 1em 0 0.5em;
+      font-weight: 600;
+    }
+
+    .help-body hr {
+      border: none;
+      border-top: 1px solid #334155;
+      margin: 1.2em 0;
+    }
+
+    .help-body a {
+      color: #60a5fa;
+      text-decoration: none;
+    }
+
+    .help-body a:hover { text-decoration: underline; }
+
+    .help-body .help-download-icon {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 20px;
+      height: 20px;
+      margin: 0 2px;
+      vertical-align: middle;
+      border-radius: 4px;
+      text-decoration: none !important;
+    }
+
+    .help-body .help-download-icon img {
+      width: 20px;
+      height: 20px;
+      display: block;
+      filter: brightness(0) saturate(100%) invert(27%) sepia(98%) saturate(2476%) hue-rotate(214deg) brightness(98%) contrast(96%);
+    }
+
+    .help-body .help-download-icon:hover {
+      background: rgba(37, 99, 235, 0.15);
+      text-decoration: none !important;
+    }
+
+    .help-body .help-download-icon:hover img {
+      filter: brightness(0) saturate(100%) invert(21%) sepia(95%) saturate(2878%) hue-rotate(214deg) brightness(92%) contrast(96%);
+    }
+
+    .help-body li.nested {
+      margin-left: 1.2em;
+      list-style: circle;
+    }
+
     .help-body p { margin: 0.6em 0; }
     .help-body ul { margin: 0.6em 0; padding-left: 1.4em; }
     .help-body li { margin: 0.35em 0; }
@@ -198,6 +251,132 @@
       background: #0f172a;
       color: #e2e8f0;
       font-weight: 600;
+    }
+
+    .folder-import-dialog {
+      width: min(480px, 100%);
+    }
+
+    .folder-import-body {
+      padding: 16px 20px 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .folder-import-tip {
+      margin: 0;
+      font-size: 0.82rem;
+      line-height: 1.6;
+      color: #94a3b8;
+    }
+
+    .folder-import-list {
+      list-style: none;
+      margin: 0;
+      padding: 0;
+      min-height: 88px;
+      max-height: 240px;
+      overflow-y: auto;
+      border: 1px dashed #334155;
+      border-radius: 8px;
+      background: #0f172a;
+    }
+
+    .folder-import-list:empty::before {
+      content: '尚未添加文件夹';
+      display: block;
+      padding: 32px 16px;
+      text-align: center;
+      color: #64748b;
+      font-size: 0.85rem;
+    }
+
+    .folder-import-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 12px;
+      border-bottom: 1px solid #1e293b;
+    }
+
+    .folder-import-item:last-child { border-bottom: none; }
+
+    .folder-import-item-name {
+      flex: 1;
+      min-width: 0;
+      font-size: 0.88rem;
+      color: #e2e8f0;
+    }
+
+    .folder-import-item-key {
+      margin-top: 2px;
+      font-size: 0.75rem;
+      color: #64748b;
+    }
+
+    .btn-folder-import-remove {
+      flex-shrink: 0;
+      width: 24px;
+      height: 24px;
+      border: none;
+      border-radius: 4px;
+      background: transparent;
+      color: #94a3b8;
+      font-size: 1rem;
+      line-height: 1;
+      cursor: pointer;
+    }
+
+    .btn-folder-import-remove:hover {
+      background: rgba(69, 10, 10, 0.5);
+      color: #fca5a5;
+    }
+
+    .folder-import-actions {
+      display: flex;
+      gap: 10px;
+      justify-content: flex-end;
+    }
+
+    .btn-folder-import-add,
+    .btn-folder-import-confirm,
+    .btn-folder-import-cancel {
+      padding: 8px 14px;
+      font-size: 0.85rem;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+
+    .btn-folder-import-add {
+      margin-right: auto;
+      background: #334155;
+      color: #e2e8f0;
+    }
+
+    .btn-folder-import-add:hover { background: #475569; }
+
+    .btn-folder-import-confirm {
+      background: #2563eb;
+      color: #fff;
+    }
+
+    .btn-folder-import-confirm:hover:not(:disabled) { background: #1d4ed8; }
+
+    .btn-folder-import-confirm:disabled {
+      opacity: 0.45;
+      cursor: not-allowed;
+    }
+
+    .btn-folder-import-cancel {
+      background: transparent;
+      color: #94a3b8;
+    }
+
+    .btn-folder-import-cancel:hover {
+      background: #334155;
+      color: #e2e8f0;
     }
 
     .header-logo {
@@ -291,7 +470,9 @@
     }
 
     .btn-add,
+    .btn-locate,
     .btn-clear,
+    .btn-refresh,
     .btn-sort {
       padding: 4px 10px;
       font-size: 0.8rem;
@@ -303,7 +484,76 @@
     }
 
     .btn-add:hover,
+    .btn-locate:hover,
+    .btn-refresh:hover,
     .btn-sort:hover { background: rgba(51, 65, 85, 0.5); }
+
+    .btn-locate:disabled {
+      opacity: 0.35;
+      cursor: not-allowed;
+    }
+
+    .btn-locate:disabled:hover { background: transparent; }
+
+    .btn-refresh:disabled {
+      opacity: 0.35;
+      cursor: not-allowed;
+    }
+
+    .btn-refresh:disabled:hover { background: transparent; }
+
+    .btn-refresh.loading {
+      opacity: 1;
+      cursor: wait;
+      background: rgba(37, 99, 235, 0.15);
+    }
+
+    .btn-refresh.loading .btn-icon-img {
+      animation: refresh-spin 0.9s linear infinite;
+    }
+
+    @keyframes refresh-spin {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
+    }
+
+    .sidebar-list-wrap {
+      position: relative;
+      flex: 1;
+      min-height: 0;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .refresh-loading {
+      position: absolute;
+      inset: 0;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      background: rgba(11, 18, 32, 0.78);
+      backdrop-filter: blur(2px);
+      z-index: 5;
+    }
+
+    .refresh-loading.visible {
+      display: flex;
+    }
+
+    .refresh-loading-inner {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 10px;
+      color: #94a3b8;
+      font-size: 0.85rem;
+    }
+
+    .refresh-loading-icon {
+      width: 28px;
+      height: 28px;
+      animation: refresh-spin 0.9s linear infinite;
+    }
 
     .btn-sort.active {
       background: rgba(37, 99, 235, 0.2);
@@ -1131,11 +1381,32 @@
       <div class="help-body" id="helpBody">加载中…</div>
     </div>
   </div>
+  <div class="help-overlay" id="folderImportOverlay" aria-hidden="true">
+    <div class="help-dialog folder-import-dialog" role="dialog" aria-modal="true" aria-labelledby="folderImportTitle">
+      <div class="help-header">
+        <h2 id="folderImportTitle">导入文件夹</h2>
+        <button type="button" class="help-close" id="btnFolderImportClose" title="关闭" aria-label="关闭">×</button>
+      </div>
+      <div class="folder-import-body">
+        <p class="folder-import-tip">浏览器不支持一次选中多个文件夹。请多次点击「添加文件夹」加入列表，完成后点击「开始导入」。</p>
+        <ul class="folder-import-list" id="folderImportList"></ul>
+        <div class="folder-import-actions">
+          <button type="button" class="btn-folder-import-add" id="btnFolderImportAdd">+ 添加文件夹</button>
+          <button type="button" class="btn-folder-import-cancel" id="btnFolderImportCancel">取消</button>
+          <button type="button" class="btn-folder-import-confirm" id="btnFolderImportConfirm" disabled>开始导入</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <div class="layout">
     <aside class="sidebar" id="sidebar">
       <div class="sidebar-header">
         <h2>媒体目录</h2>
         <div class="sidebar-actions">
+          <button type="button" class="btn-locate btn-icon" id="btnLocate" title="定位当前播放" aria-label="定位当前播放" disabled>
+            <img class="btn-icon-img" id="btnLocateIcon" src="img/定位.png" alt="">
+          </button>
           <button type="button" class="btn-add btn-icon" id="btnAdd" title="添加媒体文件" aria-label="添加媒体文件">
             <img class="btn-icon-img" id="btnAddIcon" src="img/upload.svg" alt="">
           </button>
@@ -1144,6 +1415,9 @@
           </button>
           <button type="button" class="btn-sort btn-icon" id="btnSort" title="按添加顺序" aria-label="切换排序">
             <img class="btn-icon-img" id="btnSortIcon" src="img/sort.svg" alt="">
+          </button>
+          <button type="button" class="btn-refresh btn-icon" id="btnRefresh" title="刷新目录" aria-label="刷新目录">
+            <img class="btn-icon-img" id="btnRefreshIcon" src="img/刷新.png" alt="">
           </button>
           <button type="button" class="btn-clear btn-icon" id="btnClear" title="清空全部" aria-label="清空全部">
             <img class="btn-icon-img" id="btnClearIcon" src="img/清空.svg" alt="">
@@ -1154,9 +1428,17 @@
         <input type="search" class="search-input" id="searchInput" placeholder="搜索文件名或文件夹…" autocomplete="off" aria-label="搜索媒体文件" />
         <button type="button" class="btn-search-clear" id="btnSearchClear" title="清除搜索" aria-label="清除搜索" hidden>×</button>
       </div>
-      <ul class="file-list" id="fileList"></ul>
+      <div class="sidebar-list-wrap">
+        <ul class="file-list" id="fileList"></ul>
+        <div class="refresh-loading" id="sidebarLoading" hidden aria-hidden="true">
+          <div class="refresh-loading-inner">
+            <img class="refresh-loading-icon" src="img/刷新.png" alt="">
+            <span id="sidebarLoadingText">正在处理…</span>
+          </div>
+        </div>
+      </div>
       <input type="file" id="fileInput" accept="audio/*,video/*,image/*,.mp3,.mp4,.lrc,.jpg,.jpeg,.png,.webp,.gif,.bmp,.avif" multiple />
-      <input type="file" id="folderInput" webkitdirectory multiple hidden />
+      <input type="file" id="folderInput" webkitdirectory directory multiple hidden />
     </aside>
     <div class="sidebar-resizer" id="sidebarResizer" title="拖拽调整宽度"></div>
 
@@ -1239,8 +1521,12 @@
     const fileInput = document.getElementById('fileInput');
     const folderInput = document.getElementById('folderInput');
     const btnAdd = document.getElementById('btnAdd');
+    const btnLocate = document.getElementById('btnLocate');
     const btnAddFolder = document.getElementById('btnAddFolder');
     const btnClear = document.getElementById('btnClear');
+    const btnRefresh = document.getElementById('btnRefresh');
+    const refreshLoading = document.getElementById('sidebarLoading');
+    const sidebarLoadingText = document.getElementById('sidebarLoadingText');
     const btnSort = document.getElementById('btnSort');
     const btnSortIcon = document.getElementById('btnSortIcon');
     const searchInput = document.getElementById('searchInput');
@@ -1282,8 +1568,10 @@
     const ICON_PATHS = {
       logo: 'img/logo.svg',
       add: 'img/upload.svg',
+      locate: 'img/定位.png',
       folder: 'img/文件夹.svg',
       clear: 'img/清空.svg',
+      refresh: 'img/刷新.png',
       sortDefault: 'img/sort.svg',
       sortUp: 'img/操作-排序-升序.svg',
       sortDown: 'img/操作-排序-降序.svg',
@@ -1303,13 +1591,17 @@
     const UNGROUPED_FOLDER = '未分组';
     const PLAYBACK_RATES = [0.5, 0.75, 1, 1.25, 1.5, 1.75, 2];
     const DB_NAME = 'AudioPlayerDB';
-    const DB_VERSION = 2;
+    const DB_VERSION = 3;
     const STORE_NAME = 'mediaFiles';
+    const FOLDER_HANDLES_STORE = 'folderHandles';
     let sortOrder = localStorage.getItem(SORT_KEY) || 'added';
     let searchQuery = '';
     let collapsedFolders = new Set();
     let isResizing = false;
     let dbPromise = null;
+    const folderHandles = new Map();
+    let isRefreshing = false;
+    let isImporting = false;
 
     try {
       const savedCollapsed = JSON.parse(localStorage.getItem(COLLAPSED_FOLDERS_KEY) || '[]');
@@ -1334,8 +1626,14 @@
       return `${folder || UNGROUPED_FOLDER}\0${name}\0${size}`;
     }
 
+    function getNormalizedFolder(folder) {
+      if (!folder || folder === UNGROUPED_FOLDER) return UNGROUPED_FOLDER;
+      const canonicalTop = getFolderBaseName(folder.split('/')[0]);
+      return normalizeFolderPath(folder, canonicalTop);
+    }
+
     function getFileKey(file) {
-      return getMediaFileKey(file.name, getFolderFromFile(file), file.size);
+      return getMediaFileKey(file.name, getNormalizedFolder(getFolderFromFile(file)), file.size);
     }
 
     function readDirectoryEntry(entry, basePath = '') {
@@ -1406,6 +1704,9 @@
               const store = db.createObjectStore(STORE_NAME, { keyPath: 'id', autoIncrement: true });
               store.createIndex('addedAt', 'addedAt', { unique: false });
             }
+            if (!db.objectStoreNames.contains(FOLDER_HANDLES_STORE)) {
+              db.createObjectStore(FOLDER_HANDLES_STORE, { keyPath: 'folder' });
+            }
           };
         });
       }
@@ -1459,6 +1760,753 @@
         req.onsuccess = () => resolve();
         req.onerror = () => reject(req.error);
       }));
+    }
+
+    function dbSaveFolderHandle(folder, handle) {
+      return openDB().then((db) => new Promise((resolve, reject) => {
+        const tx = db.transaction(FOLDER_HANDLES_STORE, 'readwrite');
+        const req = tx.objectStore(FOLDER_HANDLES_STORE).put({ folder, handle });
+        req.onsuccess = () => resolve();
+        req.onerror = () => reject(req.error);
+      }));
+    }
+
+    function dbDeleteFolderHandle(folder) {
+      return openDB().then((db) => new Promise((resolve, reject) => {
+        const tx = db.transaction(FOLDER_HANDLES_STORE, 'readwrite');
+        const req = tx.objectStore(FOLDER_HANDLES_STORE).delete(folder);
+        req.onsuccess = () => resolve();
+        req.onerror = () => reject(req.error);
+      }));
+    }
+
+    function dbGetAllFolderHandles() {
+      return openDB().then((db) => new Promise((resolve, reject) => {
+        const tx = db.transaction(FOLDER_HANDLES_STORE, 'readonly');
+        const req = tx.objectStore(FOLDER_HANDLES_STORE).getAll();
+        req.onsuccess = () => resolve(req.result || []);
+        req.onerror = () => reject(req.error);
+      }));
+    }
+
+    function dbClearFolderHandles() {
+      return openDB().then((db) => new Promise((resolve, reject) => {
+        const tx = db.transaction(FOLDER_HANDLES_STORE, 'readwrite');
+        const req = tx.objectStore(FOLDER_HANDLES_STORE).clear();
+        req.onsuccess = () => resolve();
+        req.onerror = () => reject(req.error);
+      }));
+    }
+
+    function dbUpdateItemFolder(id, folder) {
+      return openDB().then((db) => new Promise((resolve, reject) => {
+        const tx = db.transaction(STORE_NAME, 'readwrite');
+        const store = tx.objectStore(STORE_NAME);
+        const getReq = store.get(id);
+        getReq.onsuccess = () => {
+          const record = getReq.result;
+          if (!record) {
+            resolve(null);
+            return;
+          }
+          record.folder = folder;
+          const putReq = store.put(record);
+          putReq.onsuccess = () => resolve(record);
+          putReq.onerror = () => reject(putReq.error);
+        };
+        getReq.onerror = () => reject(getReq.error);
+      }));
+    }
+
+    async function readDirectoryHandle(dirHandle, basePath = '') {
+      const files = [];
+      for await (const [name, handle] of dirHandle.entries()) {
+        if (handle.kind === 'file') {
+          const file = await handle.getFile();
+          const relativePath = basePath ? `${basePath}/${name}` : name;
+          try {
+            Object.defineProperty(file, 'webkitRelativePath', {
+              value: relativePath,
+              configurable: true,
+            });
+          } catch (_) {}
+          files.push(file);
+        } else if (handle.kind === 'directory') {
+          const subPath = basePath ? `${basePath}/${name}` : name;
+          const subFiles = await readDirectoryHandle(handle, subPath);
+          files.push(...subFiles);
+        }
+      }
+      return files;
+    }
+
+    async function ensureHandlePermission(handle) {
+      const permission = await handle.queryPermission({ mode: 'read' });
+      if (permission === 'granted') return true;
+      const requested = await handle.requestPermission({ mode: 'read' });
+      return requested === 'granted';
+    }
+
+    async function saveFolderHandle(folder, handle) {
+      folderHandles.set(folder, handle);
+      await dbSaveFolderHandle(folder, handle);
+    }
+
+    function loadFolderHandles() {
+      return dbGetAllFolderHandles()
+        .then((records) => {
+          folderHandles.clear();
+          records.forEach((record) => {
+            if (record.folder && record.handle) {
+              const canonical = getCanonicalFolderKey(record.folder);
+              folderHandles.set(canonical, record.handle);
+              if (canonical !== record.folder) {
+                dbSaveFolderHandle(canonical, record.handle);
+                dbDeleteFolderHandle(record.folder);
+              }
+            }
+          });
+          updateRefreshButton();
+        })
+        .catch(() => {});
+    }
+
+    function getLinkedFolders() {
+      const keys = new Set();
+      folderHandles.forEach((_, key) => keys.add(getCanonicalFolderKey(key)));
+      return [...keys];
+    }
+
+    function getFolderBaseName(name) {
+      const match = name.match(/^(.+) \((\d+)\)$/);
+      return match ? match[1] : name;
+    }
+
+    function getCanonicalFolderKey(name) {
+      return getFolderBaseName(name);
+    }
+
+    function normalizeFolderPath(folder, canonicalTop) {
+      if (folder === UNGROUPED_FOLDER) return folder;
+      const parts = folder.split('/');
+      parts[0] = canonicalTop;
+      return parts.join('/');
+    }
+
+    function topFoldersMatch(folderTopA, folderTopB) {
+      return getFolderBaseName(folderTopA) === getFolderBaseName(folderTopB);
+    }
+
+    function itemBelongsToFolder(item, folderName) {
+      const folder = item.folder || UNGROUPED_FOLDER;
+      if (folder === UNGROUPED_FOLDER) return folderName === UNGROUPED_FOLDER;
+
+      const itemTop = folder.split('/')[0];
+      const targetTop = folderName.split('/')[0];
+      if (!topFoldersMatch(itemTop, targetTop)) return false;
+
+      const canonicalTop = getFolderBaseName(targetTop);
+      const normalizedItemFolder = normalizeFolderPath(folder, canonicalTop);
+      const normalizedTarget = normalizeFolderPath(folderName, canonicalTop);
+      return normalizedItemFolder === normalizedTarget || normalizedItemFolder.startsWith(`${normalizedTarget}/`);
+    }
+
+    function fileBelongsToFolder(file, folderName) {
+      const folder = getFolderFromFile(file);
+      if (folder === UNGROUPED_FOLDER) return folderName === UNGROUPED_FOLDER;
+
+      const fileTop = folder.split('/')[0];
+      const targetTop = folderName.split('/')[0];
+      if (!topFoldersMatch(fileTop, targetTop)) return false;
+
+      const canonicalTop = getFolderBaseName(targetTop);
+      const normalizedFileFolder = normalizeFolderPath(folder, canonicalTop);
+      const normalizedTarget = normalizeFolderPath(folderName, canonicalTop);
+      return normalizedFileFolder === normalizedTarget || normalizedFileFolder.startsWith(`${normalizedTarget}/`);
+    }
+
+    function getNameFolderKey(name, folder) {
+      return `${folder || UNGROUPED_FOLDER}\0${name}`;
+    }
+
+    function isFolderKeyInUse(folderKey, extraKeys = []) {
+      const canonical = getCanonicalFolderKey(folderKey);
+      if (folderHandles.has(canonical) || folderHandles.has(folderKey)) return true;
+      if (extraKeys.includes(canonical) || extraKeys.includes(folderKey)) return true;
+      return mediaItems.some((item) => itemBelongsToFolder(item, canonical));
+    }
+
+    function getTopLevelFolder(item) {
+      const folder = item.folder || UNGROUPED_FOLDER;
+      if (folder === UNGROUPED_FOLDER) return UNGROUPED_FOLDER;
+      return folder.split('/')[0];
+    }
+
+    function groupFilesByTopFolder(files) {
+      const groups = new Map();
+      Array.from(files).forEach((file) => {
+        const path = file.webkitRelativePath || '';
+        const topFolder = path.includes('/') ? path.split('/')[0] : UNGROUPED_FOLDER;
+        if (!groups.has(topFolder)) groups.set(topFolder, []);
+        groups.get(topFolder).push(file);
+      });
+      return groups;
+    }
+
+    async function pickFolderHandle(expectedFolder = null) {
+      if (!window.showDirectoryPicker) return null;
+      const handle = await window.showDirectoryPicker();
+      if (expectedFolder && handle.name !== expectedFolder) {
+        const label = expectedFolder === UNGROUPED_FOLDER ? '未分组' : expectedFolder;
+        const proceed = confirm(`所选文件夹「${handle.name}」与当前目录「${label}」不一致，仍要刷新吗？`);
+        if (!proceed) return null;
+      }
+      return handle;
+    }
+
+    async function resolveFolderHandle(folderName) {
+      const canonical = getCanonicalFolderKey(folderName);
+      let handle = folderHandles.get(canonical) || folderHandles.get(folderName);
+      if (!handle) {
+        for (const [key, value] of folderHandles.entries()) {
+          if (getCanonicalFolderKey(key) === canonical) {
+            handle = value;
+            break;
+          }
+        }
+      }
+      if (handle) return handle;
+      handle = await pickFolderHandle(canonical);
+      if (!handle) return null;
+      await saveFolderHandle(canonical, handle);
+      return handle;
+    }
+
+    async function syncFolderFromHandle(folderName, handle) {
+      const allowed = await ensureHandlePermission(handle);
+      if (!allowed) throw new Error('permission denied');
+
+      const canonicalTop = getCanonicalFolderKey(folderName);
+      const allFiles = await readDirectoryHandle(handle, canonicalTop);
+      const scopedFiles = allFiles.filter((file) => fileBelongsToFolder(file, canonicalTop));
+      const lrcFiles = scopedFiles.filter(isLrc);
+      const coverImages = scopedFiles.filter(isCoverImage);
+      const mediaFiles = scopedFiles.filter((file) => !isLrc(file) && !isCoverImage(file) && isSupported(file));
+
+      const diskMediaByNameFolder = new Map();
+      mediaFiles.forEach((file) => {
+        diskMediaByNameFolder.set(getNameFolderKey(file.name, getFolderFromFile(file)), file);
+      });
+
+      const existingItems = mediaItems.filter((item) => itemBelongsToFolder(item, canonicalTop));
+      const toRemove = [];
+      const toAdd = [...mediaFiles];
+
+      existingItems.forEach((item) => {
+        const normalizedFolder = normalizeFolderPath(item.folder, canonicalTop);
+        const key = getNameFolderKey(item.name, normalizedFolder);
+        const diskFile = diskMediaByNameFolder.get(key);
+        if (!diskFile) {
+          toRemove.push(item);
+          return;
+        }
+        if (diskFile.size !== item.size) {
+          toRemove.push(item);
+          return;
+        }
+        const addIndex = toAdd.indexOf(diskFile);
+        if (addIndex !== -1) toAdd.splice(addIndex, 1);
+      });
+
+      await Promise.all(toRemove.map((item) => dbDeleteFile(item.id)));
+      toRemove.forEach((item) => {
+        const index = mediaItems.findIndex((m) => m.id === item.id);
+        if (index !== -1) {
+          const [removed] = mediaItems.splice(index, 1);
+          revokeItemUrls(removed);
+          removeSavedPosition(item.id);
+          removeCompleted(item.id);
+          if (activeId === item.id) {
+            activeId = null;
+            saveActiveId();
+            stopPlayback();
+            showIdleView();
+            clearPlayerInfo();
+          }
+        }
+      });
+
+      if (toAdd.length) {
+        const coverMap = buildCoverImageMap(coverImages);
+        const items = await Promise.all(toAdd.map((file) => {
+          const coverEntry = coverMap.get(getCoverLookupKeyFromFile(file));
+          return addMediaFile(file, coverEntry?.file || null);
+        }));
+        items.forEach((item) => mediaItems.push(item));
+      }
+
+      if (lrcFiles.length) await processLrcFiles(lrcFiles);
+      if (coverImages.length) await processCoverImages(coverImages);
+      await normalizeSuffixedItemFolders(canonicalTop);
+    }
+
+    async function normalizeSuffixedItemFolders(canonicalTop) {
+      const items = mediaItems.filter((item) => {
+        const top = getTopLevelFolder(item);
+        return getFolderBaseName(top) === canonicalTop && top !== canonicalTop;
+      });
+      if (!items.length) return;
+
+      await Promise.all(items.map((item) => {
+        const newFolder = normalizeFolderPath(item.folder, canonicalTop);
+        if (newFolder === item.folder) return Promise.resolve();
+        item.folder = newFolder;
+        return dbUpdateItemFolder(item.id, newFolder);
+      }));
+    }
+
+    async function migrateFolderTopName(fromTop, toTop) {
+      const items = mediaItems.filter((item) => getTopLevelFolder(item) === fromTop);
+      await Promise.all(items.map((item) => {
+        const newFolder = normalizeFolderPath(item.folder, toTop);
+        item.folder = newFolder;
+        return dbUpdateItemFolder(item.id, newFolder);
+      }));
+
+      if (folderHandles.has(fromTop)) {
+        const handle = folderHandles.get(fromTop);
+        folderHandles.delete(fromTop);
+        await dbDeleteFolderHandle(fromTop).catch(() => {});
+        if (handle) await saveFolderHandle(toTop, handle);
+      }
+    }
+
+    async function verifyFolderHandle(handle) {
+      try {
+        for await (const _ of handle.entries()) {
+          break;
+        }
+        return true;
+      } catch (err) {
+        if (isFolderMissingError(err)) return false;
+        throw err;
+      }
+    }
+
+    function isFolderMissingError(err) {
+      return err?.name === 'NotFoundError'
+        || err?.name === 'InvalidStateError'
+        || /not found|could not be found|no longer available|已被删除|不存在/i.test(err?.message || '');
+    }
+
+    async function refreshFolderEntry(folderName, handle, removedFolders) {
+      const canonical = getCanonicalFolderKey(folderName);
+      const accessible = await verifyFolderHandle(handle);
+      if (!accessible) {
+        await removeFolderItemsSilent(canonical);
+        if (!removedFolders.includes(canonical)) removedFolders.push(canonical);
+        return;
+      }
+
+      try {
+        await syncFolderFromHandle(folderName, handle);
+      } catch (err) {
+        if (isFolderMissingError(err)) {
+          await removeFolderItemsSilent(canonical);
+          if (!removedFolders.includes(canonical)) removedFolders.push(canonical);
+          return;
+        }
+        throw err;
+      }
+    }
+
+    async function refreshLinkedFolders(folderNames = getLinkedFolders()) {
+      const removedFolders = [];
+
+      if (!folderNames.length) {
+        if (!window.showDirectoryPicker) {
+          alert('当前浏览器不支持目录刷新，请使用 Chrome 或 Edge，并通过「添加文件夹」导入');
+          return;
+        }
+
+        const topFolders = [...new Set(
+          mediaItems
+            .map((item) => item.folder || UNGROUPED_FOLDER)
+            .filter((folder) => folder !== UNGROUPED_FOLDER)
+            .map((folder) => getCanonicalFolderKey(folder.split('/')[0])),
+        )];
+
+        if (!topFolders.length) {
+          alert('请先通过「添加文件夹」导入目录，以便记录文件夹位置');
+          return;
+        }
+
+        for (const folderName of topFolders) {
+          const handle = await resolveFolderHandle(folderName);
+          if (!handle) continue;
+          await refreshFolderEntry(folderName, handle, removedFolders);
+        }
+        if (removedFolders.length) {
+          alert(`以下目录已不存在，已从列表中移除：\n${removedFolders.join('\n')}`);
+        }
+        renderList();
+        return;
+      }
+
+      for (const folderName of folderNames) {
+        const handle = folderHandles.get(folderName) || await resolveFolderHandle(folderName);
+        if (!handle) continue;
+        await refreshFolderEntry(folderName, handle, removedFolders);
+      }
+      if (removedFolders.length) {
+        alert(`以下目录已不存在，已从列表中移除：\n${removedFolders.join('\n')}`);
+      }
+      renderList();
+    }
+
+    async function removeFolderItemsSilent(folder) {
+      const canonical = getCanonicalFolderKey(folder);
+      const items = mediaItems.filter((item) => itemBelongsToFolder(item, canonical));
+      if (!items.length) {
+        for (const key of [...folderHandles.keys()]) {
+          if (getCanonicalFolderKey(key) === canonical) {
+            folderHandles.delete(key);
+            await dbDeleteFolderHandle(key).catch(() => {});
+          }
+        }
+        return;
+      }
+
+      await Promise.all(items.map((item) => dbDeleteFile(item.id)));
+      const ids = new Set(items.map((item) => item.id));
+      items.forEach((item) => {
+        revokeItemUrls(item);
+        removeSavedPosition(item.id);
+        removeCompleted(item.id);
+      });
+
+      for (let i = mediaItems.length - 1; i >= 0; i -= 1) {
+        if (ids.has(mediaItems[i].id)) mediaItems.splice(i, 1);
+      }
+
+      if (activeId !== null && ids.has(activeId)) {
+        activeId = null;
+        saveActiveId();
+        stopPlayback();
+        showIdleView();
+        clearPlayerInfo();
+      }
+
+      for (const key of [...folderHandles.keys()]) {
+        if (getCanonicalFolderKey(key) === canonical) {
+          folderHandles.delete(key);
+          await dbDeleteFolderHandle(key).catch(() => {});
+        }
+      }
+    }
+
+    async function cleanupSuffixedDuplicateFolders() {
+      const topFolders = [...new Set(
+        mediaItems.map(getTopLevelFolder).filter((folder) => folder !== UNGROUPED_FOLDER),
+      )];
+
+      const duplicateFolders = topFolders.filter((folder) => {
+        const base = getFolderBaseName(folder);
+        return base !== folder && topFolders.includes(base);
+      });
+
+      for (const folder of duplicateFolders) {
+        await removeFolderItemsSilent(folder);
+      }
+
+      const suffixedOnly = topFolders.filter((folder) => {
+        const base = getFolderBaseName(folder);
+        return base !== folder && !topFolders.includes(base);
+      });
+
+      for (const folder of suffixedOnly) {
+        await migrateFolderTopName(folder, getFolderBaseName(folder));
+      }
+
+      if (duplicateFolders.length || suffixedOnly.length) renderList();
+    }
+
+    function updateSidebarLoadingOverlay() {
+      const busy = isRefreshing || isImporting;
+      const message = isRefreshing ? '正在刷新目录…' : '正在导入文件…';
+
+      if (sidebarLoadingText) sidebarLoadingText.textContent = message;
+      if (refreshLoading) {
+        refreshLoading.classList.toggle('visible', busy);
+        refreshLoading.hidden = !busy;
+        refreshLoading.setAttribute('aria-hidden', busy ? 'false' : 'true');
+      }
+
+      btnAdd.disabled = busy;
+      btnAddFolder.disabled = busy;
+      updateLocateButton();
+    }
+
+    function updateRefreshButton() {
+      const hasLinkedFolders = folderHandles.size > 0
+        || mediaItems.some((item) => (item.folder || UNGROUPED_FOLDER) !== UNGROUPED_FOLDER);
+
+      btnRefresh.disabled = isRefreshing || isImporting || !hasLinkedFolders;
+      btnRefresh.classList.toggle('loading', isRefreshing);
+      btnRefresh.title = isRefreshing ? '正在刷新目录…' : '刷新目录';
+      btnRefresh.setAttribute('aria-label', isRefreshing ? '正在刷新目录' : '刷新目录');
+      updateSidebarLoadingOverlay();
+    }
+
+    async function handleRefreshClick() {
+      if (isRefreshing) return;
+      isRefreshing = true;
+      updateRefreshButton();
+      try {
+        await refreshLinkedFolders();
+      } catch (err) {
+        if (err?.name !== 'AbortError') {
+          alert(err?.message === 'permission denied' ? '需要文件夹读取权限才能刷新' : '刷新目录失败，请重试');
+        }
+      } finally {
+        isRefreshing = false;
+        updateRefreshButton();
+      }
+    }
+
+    let pendingFolderImports = [];
+    let folderImportViaInput = false;
+
+    function renderFolderImportList() {
+      const listEl = document.getElementById('folderImportList');
+      const confirmBtn = document.getElementById('btnFolderImportConfirm');
+      if (!listEl || !confirmBtn) return;
+
+      listEl.innerHTML = '';
+      pendingFolderImports.forEach((item, index) => {
+        const li = document.createElement('li');
+        li.className = 'folder-import-item';
+
+        const nameWrap = document.createElement('div');
+        nameWrap.className = 'folder-import-item-name';
+
+        const title = document.createElement('div');
+        title.textContent = item.name;
+        title.title = item.name;
+        nameWrap.appendChild(title);
+
+        if (item.folderKey !== item.name) {
+          const key = document.createElement('div');
+          key.className = 'folder-import-item-key';
+          key.textContent = item.folderKey;
+          nameWrap.appendChild(key);
+        } else if (item.refresh) {
+          const badge = document.createElement('div');
+          badge.className = 'folder-import-item-key';
+          badge.textContent = '更新已有目录';
+          nameWrap.appendChild(badge);
+        }
+
+        const removeBtn = document.createElement('button');
+        removeBtn.type = 'button';
+        removeBtn.className = 'btn-folder-import-remove';
+        removeBtn.title = '移除';
+        removeBtn.setAttribute('aria-label', '移除');
+        removeBtn.textContent = '×';
+        removeBtn.addEventListener('click', () => {
+          pendingFolderImports.splice(index, 1);
+          renderFolderImportList();
+        });
+
+        li.appendChild(nameWrap);
+        li.appendChild(removeBtn);
+        listEl.appendChild(li);
+      });
+
+      confirmBtn.disabled = pendingFolderImports.length === 0;
+    }
+
+    function openFolderImportModal() {
+      pendingFolderImports = [];
+      renderFolderImportList();
+      const overlay = document.getElementById('folderImportOverlay');
+      overlay.classList.add('open');
+      overlay.setAttribute('aria-hidden', 'false');
+    }
+
+    function closeFolderImportModal() {
+      pendingFolderImports = [];
+      renderFolderImportList();
+      const overlay = document.getElementById('folderImportOverlay');
+      overlay.classList.remove('open');
+      overlay.setAttribute('aria-hidden', 'true');
+    }
+
+    async function addPendingFolderFromHandle(handle) {
+      if (handle.isSameEntry) {
+        for (const item of pendingFolderImports) {
+          if (item.handle && await item.handle.isSameEntry(handle)) {
+            alert(`文件夹「${handle.name}」已在待导入列表中`);
+            return;
+          }
+        }
+      }
+      if (pendingFolderImports.some((item) => item.name === handle.name)) {
+        alert(`文件夹「${handle.name}」已在待导入列表中`);
+        return;
+      }
+
+      const files = await readDirectoryHandle(handle, handle.name);
+      if (!folderHasMediaFiles(files)) {
+        alert('不存在音频文件');
+        return;
+      }
+
+      pendingFolderImports.push({
+        folderKey: getCanonicalFolderKey(handle.name),
+        name: handle.name,
+        handle,
+        refresh: isFolderKeyInUse(handle.name),
+      });
+      renderFolderImportList();
+    }
+
+    function addPendingFolderFromFiles(files) {
+      const groups = groupFilesByTopFolder(files);
+      if (!groups.size) {
+        alert('未读取到文件夹内容');
+        return;
+      }
+
+      let addedCount = 0;
+      let noMediaCount = 0;
+      groups.forEach((groupFiles, topName) => {
+        if (topName === UNGROUPED_FOLDER) return;
+        if (pendingFolderImports.some((item) => item.name === topName)) return;
+        if (!folderHasMediaFiles(groupFiles)) {
+          noMediaCount += 1;
+          return;
+        }
+
+        pendingFolderImports.push({
+          folderKey: getCanonicalFolderKey(topName),
+          name: topName,
+          files: groupFiles,
+          refresh: isFolderKeyInUse(topName),
+        });
+        addedCount += 1;
+      });
+
+      if (!addedCount) {
+        if (noMediaCount > 0) {
+          alert('不存在音频文件');
+        } else {
+          alert('请选择包含媒体文件的文件夹');
+        }
+        return;
+      }
+
+      renderFolderImportList();
+    }
+
+    async function pickFolderForImportModal() {
+      if (window.showDirectoryPicker) {
+        try {
+          const handle = await window.showDirectoryPicker();
+          await addPendingFolderFromHandle(handle);
+        } catch (err) {
+          if (err?.name !== 'AbortError') {
+            alert('无法打开文件夹，请重试');
+          }
+        }
+        return;
+      }
+
+      folderImportViaInput = true;
+      folderInput.click();
+    }
+
+    async function importPendingFolders() {
+      if (!pendingFolderImports.length || isImporting) return;
+
+      const imports = [...pendingFolderImports];
+      closeFolderImportModal();
+
+      isImporting = true;
+      updateSidebarLoadingOverlay();
+      updateRefreshButton();
+
+      try {
+        for (const item of imports) {
+          if (item.handle) {
+            await saveFolderHandle(item.folderKey, item.handle);
+            if (item.refresh) {
+              await syncFolderFromHandle(item.folderKey, item.handle);
+            } else {
+              const files = await readDirectoryHandle(item.handle, item.folderKey);
+              await addFiles(files);
+            }
+          } else if (item.files?.length) {
+            await addFiles(item.files);
+          }
+        }
+        renderList();
+        updateRefreshButton();
+        await cleanupSuffixedDuplicateFolders();
+      } catch (err) {
+        alert('导入文件夹失败，请重试');
+      } finally {
+        isImporting = false;
+        updateSidebarLoadingOverlay();
+        updateRefreshButton();
+      }
+    }
+
+    async function importFilesWithLoading(files) {
+      if (isImporting || isRefreshing) return addFiles(files);
+
+      isImporting = true;
+      updateSidebarLoadingOverlay();
+      updateRefreshButton();
+
+      try {
+        await addFiles(files);
+      } finally {
+        isImporting = false;
+        updateSidebarLoadingOverlay();
+        updateRefreshButton();
+      }
+    }
+
+    function initFolderImportModal() {
+      const overlay = document.getElementById('folderImportOverlay');
+      const btnClose = document.getElementById('btnFolderImportClose');
+      const btnCancel = document.getElementById('btnFolderImportCancel');
+      const btnAdd = document.getElementById('btnFolderImportAdd');
+      const btnConfirm = document.getElementById('btnFolderImportConfirm');
+
+      btnClose.addEventListener('click', closeFolderImportModal);
+      btnCancel.addEventListener('click', closeFolderImportModal);
+      btnAdd.addEventListener('click', () => {
+        pickFolderForImportModal();
+      });
+      btnConfirm.addEventListener('click', () => {
+        importPendingFolders();
+      });
+
+      overlay.addEventListener('click', (e) => {
+        if (e.target === overlay) closeFolderImportModal();
+      });
+
+      document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && overlay.classList.contains('open')) {
+          closeFolderImportModal();
+        }
+      });
+    }
+
+    function pickAndAddFolder() {
+      openFolderImportModal();
     }
 
     function dbUpdateSubtitle(id, subtitleLrc) {
@@ -2045,6 +3093,10 @@
       return isVideo(file) || isAudio(file);
     }
 
+    function folderHasMediaFiles(files) {
+      return Array.from(files).some((file) => !isLrc(file) && !isCoverImage(file) && isSupported(file));
+    }
+
     function showIdleView() {
       playerWrap.classList.remove('active');
       emptyState.style.display = 'block';
@@ -2425,7 +3477,7 @@
 
     function addMediaFile(file, companionCover = null) {
       const type = isVideo(file) ? 'video' : 'audio';
-      const folder = getFolderFromFile(file);
+      const folder = getNormalizedFolder(getFolderFromFile(file));
       return probeMediaDuration(file, type)
         .then((duration) => dbAddFile(file, duration, folder))
         .then((record) => recordToItem(record))
@@ -2539,6 +3591,44 @@
       renderList();
     }
 
+    function updateLocateButton() {
+      btnLocate.disabled = isImporting || isRefreshing || activeId === null || !mediaItems.some((item) => item.id === activeId);
+    }
+
+    function scrollToActiveFileItem() {
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          const el = fileList.querySelector(`[data-id="${activeId}"]`);
+          if (el) el.scrollIntoView({ block: 'center', behavior: 'smooth' });
+        });
+      });
+    }
+
+    function locateActiveFile() {
+      if (activeId === null) return;
+      const item = mediaItems.find((m) => m.id === activeId);
+      if (!item) return;
+
+      let needRender = false;
+
+      if (searchQuery.trim()) {
+        searchInput.value = '';
+        searchQuery = '';
+        updateSearchClearButton();
+        needRender = true;
+      }
+
+      const folder = item.folder || UNGROUPED_FOLDER;
+      if (folder !== UNGROUPED_FOLDER && collapsedFolders.has(folder)) {
+        collapsedFolders.delete(folder);
+        persistCollapsedFolders();
+        needRender = true;
+      }
+
+      if (needRender) renderList();
+      scrollToActiveFileItem();
+    }
+
     function getDisplayItems() {
       const query = searchQuery.trim().toLowerCase();
       let items = mediaItems;
@@ -2600,7 +3690,7 @@
       const supported = allFiles.filter((file) => !isLrc(file) && !isCoverImage(file) && isSupported(file));
 
       const existingKeys = new Set(
-        mediaItems.map((item) => getMediaFileKey(item.name, item.folder, item.size)),
+        mediaItems.map((item) => getMediaFileKey(item.name, getNormalizedFolder(item.folder), item.size)),
       );
       const uniqueSupported = [];
       const skipped = [];
@@ -2620,7 +3710,7 @@
         } else {
           alert('仅支持 MP4、MP3、LRC 字幕和封面图片文件');
         }
-        return;
+        return Promise.resolve();
       }
 
       const hasCoverOnly = uniqueSupported.length === 0 && lrcFiles.length === 0 && coverImages.length > 0;
@@ -2637,11 +3727,13 @@
         })
         : Promise.resolve();
 
-      addMedia
+      return addMedia
         .then(() => (lrcFiles.length ? processLrcFiles(lrcFiles) : null))
         .then(() => (coverImages.length ? processCoverImages(coverImages) : null))
+        .then(() => cleanupSuffixedDuplicateFolders())
         .then(() => {
           renderList();
+          updateRefreshButton();
         })
         .catch(() => {
           alert('保存文件失败，请重试');
@@ -2693,7 +3785,12 @@
             playItem(savedActiveId);
           }
 
-          return probeMissingDurations().then(() => probeMissingThumbnails());
+          return probeMissingDurations()
+            .then(() => probeMissingThumbnails())
+            .then(() => cleanupSuffixedDuplicateFolders());
+        })
+        .then(() => {
+          updateRefreshButton();
         })
         .catch(() => {
           alert('加载已保存文件失败');
@@ -2741,9 +3838,11 @@
       if (!confirm('确定清空全部文件吗？此操作不可恢复。')) return;
 
       dbClearAll()
+        .then(() => dbClearFolderHandles())
         .then(() => {
           mediaItems.forEach((item) => revokeItemUrls(item));
           mediaItems.length = 0;
+          folderHandles.clear();
           searchInput.value = '';
           searchQuery = '';
           updateSearchClearButton();
@@ -2755,6 +3854,7 @@
           showIdleView();
           clearPlayerInfo();
           renderList();
+          updateRefreshButton();
         })
         .catch(() => {
           alert('清空失败，请重试');
@@ -2773,6 +3873,7 @@
           empty.textContent = '无匹配结果';
           fileList.appendChild(empty);
         }
+        updateLocateButton();
         return;
       }
 
@@ -2780,6 +3881,7 @@
         groups[0]?.items.forEach((item) => {
           fileList.appendChild(createFileListItem(item));
         });
+        updateLocateButton();
         return;
       }
 
@@ -2832,6 +3934,7 @@
         group.appendChild(itemsEl);
         fileList.appendChild(group);
       });
+      updateLocateButton();
     }
 
     function playItem(id) {
@@ -2908,7 +4011,7 @@
         dragCounter = 0;
         el.classList.remove('dragover');
         getFilesFromDrop(e.dataTransfer).then((files) => {
-          if (files.length) addFiles(files);
+          if (files.length) importFilesWithLoading(files);
         });
       }, true);
     }
@@ -2933,20 +4036,29 @@
 
       const readmeFallback = `# 聆息音乐播放器
 
-聆息是一个纯前端的本地音乐播放器，单文件即可运行，无需安装、无需联网。支持 MP4 / MP3 播放、LRC 字幕同步、播放进度记忆与媒体库持久化。
+聆息是一个纯前端的本地音乐播放器，单文件即可运行，无需安装、无需联网。配套提供咪咕歌单批量下载脚本，可一键拉取 MP3、LRC 歌词与封面，拖入播放器即可收听。
 
-## 功能介绍
+---
 
-### 媒体管理
+## 一、播放器
+
+### 简介
+
+\`index.html\` 是聆息的主程序，双击或用浏览器打开即可使用。支持 MP4 / MP3 播放、LRC 字幕同步、播放进度记忆与媒体库持久化。
+
+### 功能介绍
+
+#### 媒体管理
 
 - 支持添加 **MP4、MP3** 音视频文件
 - 支持导入 **LRC 字幕**（按文件名自动匹配同名媒体）
+- 支持导入 **封面图片**（jpg / png / webp 等，按文件名自动匹配同名媒体）
 - 拖拽文件到左侧目录，或点击「添加」按钮选择文件
 - 列表显示文件大小、时长、上次播放位置、已播完状态、字幕标记
 - 三种排序方式：默认（添加顺序）、名称升序、名称降序
 - 侧边栏宽度可拖拽调整（180–600px），刷新后保持
 
-### 播放控制
+#### 播放控制
 
 - 自定义播放界面：进度条、播放/暂停、±10 秒、上一曲/下一曲
 - 音量调节与静音
@@ -2955,7 +4067,7 @@
 - LRC 字幕实时滚动同步
 - 可选「播放结束后自动下一首」
 
-### 数据持久化
+#### 数据持久化
 
 - **IndexedDB** 保存媒体文件，刷新页面后文件仍在
 - **localStorage** 记录：
@@ -2963,16 +4075,16 @@
   - 已播完标记
   - 当前选中文件、排序方式、音量、倍速、侧边栏宽度等
 
-## 使用方法
+### 使用方法
 
 1. 用浏览器直接打开 \`index.html\`
-2. 将 MP4 / MP3 / LRC 文件拖入左侧「媒体目录」，或点击添加按钮选择文件
+2. 将 MP4 / MP3 / LRC / 封面图片拖入左侧「媒体目录」，或点击添加按钮选择文件
 3. 在列表中点击文件开始播放
 4. 使用底部控制栏或快捷键操作播放
 
 > 列表为空时，点击空白区域可快速打开文件选择器；已有文件时请点击「添加」按钮。
 
-## 快捷键
+### 快捷键
 
 | 快捷键 | 功能 |
 |--------|------|
@@ -2984,38 +4096,103 @@
 
 鼠标悬停在操作按钮上可查看对应提示。
 
-## 设计说明
+### 设计说明
 
 - **单文件架构**：所有逻辑、样式、资源内嵌于 \`index.html\`，部署简单，双击即用
 - **本地优先**：文件与播放数据均保存在浏览器本地，不上传服务器
 - **深色主题**：适配长时间观看/收听场景
 - **渐进增强**：空列表引导、播放状态反馈、列表元信息一目了然
 
-## 项目结构
-
-\`\`\`
-AudioPlayer/
-├── index.html      # 主程序（单页应用）
-├── img/            # 图标资源
-│   ├── logo.svg
-│   ├── upload.svg
-│   ├── 清空.svg
-│   ├── sort.svg
-│   ├── 操作-排序-升序.svg
-│   └── 操作-排序-降序.svg
-└── README.md       # 项目说明
-\`\`\`
-
-## 技术栈
+### 技术栈
 
 - HTML5 + CSS3 + 原生 JavaScript
 - IndexedDB（媒体文件存储）
 - localStorage（用户偏好与播放状态）
 - File API / Blob URL（本地文件读取与播放）
 
-## 浏览器兼容
+### 浏览器兼容
 
-建议使用现代浏览器（Chrome、Edge、Firefox 等）。需支持 IndexedDB 与 HTML5 音视频播放。`;
+建议使用现代浏览器（Chrome、Edge、Firefox 等）。需支持 IndexedDB 与 HTML5 音视频播放。
+
+---
+
+## 二、咪咕歌单下载脚本
+
+### 简介
+
+\`download-migu-playlist.js\` 是一个 **Node.js 命令行工具**，用于从咪咕音乐批量下载歌单中的歌曲，并自动生成与聆息播放器配套的文件：
+
+- **MP3 音频**（优先 320k 音质）
+- **LRC 歌词**（同名匹配，导入后自动显示字幕）
+- **封面图片**（jpg / png / webp，同名匹配，导入后显示缩略图）
+
+下载完成后，将整个歌单文件夹拖入聆息左侧「媒体目录」即可播放。
+
+### 环境要求
+
+- [Node.js](https://nodejs.org/) 18 及以上（需支持原生 \`fetch\`）
+
+### 使用方法
+
+在终端进入项目目录（或任意希望保存歌单的目录），执行：
+
+\`\`\`bash
+# 方式一：直接传入歌单 ID
+node download-migu-playlist.js 235890246
+
+# 方式二：使用参数
+node download-migu-playlist.js --playlistId 235890246
+
+# 指定歌单类型（默认为 create）
+node download-migu-playlist.js -p 235890246 --playlistType create
+\`\`\`
+
+**歌单 ID 获取方式**：打开咪咕音乐歌单页面，URL 中的 \`playlistId\` 即为所需 ID，例如：
+
+\`\`\`
+https://music.migu.cn/v5/#/playlist?playlistId=235890246&playlistType=create
+                                                      ^^^^^^^^^
+\`\`\`
+
+### 保存规则
+
+脚本会在**当前工作目录**下自动创建 \`audio\` 文件夹（已存在则直接使用），并在其中创建以歌单名命名的子文件夹，每首歌保存为三个同名文件：
+
+\`\`\`
+audio/
+└── 歌单名/
+    ├── 歌曲名-歌手名.mp3
+    ├── 歌曲名-歌手名.lrc
+    └── 歌曲名-歌手名.jpg
+\`\`\`
+
+### 其他说明
+
+- 自动翻页加载歌单中的全部歌曲
+- 本地已存在的完整文件（音频、歌词、封面）会自动跳过，适合断点续下
+- 按 \`Ctrl+C\` 取消时，会删除当前未下载完成的临时文件
+- 部分歌曲可能因版权限制无法获取下载链接，脚本会跳过并继续下一首
+
+> 本脚本仅供个人学习与研究使用，请遵守相关法律法规及平台服务条款。
+
+---
+
+## 项目结构
+
+\`\`\`
+AudioPlayer/
+├── index.html                  # 播放器主程序（单页应用）
+├── download-migu-playlist.js   # 咪咕歌单批量下载脚本（Node.js）
+├── img/                        # 图标资源
+│   ├── logo.svg
+│   ├── upload.svg
+│   ├── 文件夹.svg
+│   ├── 清空.svg
+│   ├── sort.svg
+│   ├── 操作-排序-升序.svg
+│   └── 操作-排序-降序.svg
+└── README.md                   # 项目说明
+\`\`\``;
 
       function escapeHtml(text) {
         return text
@@ -3026,6 +4203,7 @@ AudioPlayer/
 
       function inlineMarkdown(text) {
         return escapeHtml(text)
+          .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank" rel="noopener noreferrer">$1</a>')
           .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
           .replace(/`([^`]+)`/g, '<code>$1</code>');
       }
@@ -3097,6 +4275,29 @@ AudioPlayer/
             return;
           }
 
+          if (/^-{3,}$/.test(line.trim())) {
+            closeList();
+            flushTable();
+            html += '<hr>';
+            return;
+          }
+
+          const nestedListMatch = line.match(/^  - (.+)$/);
+          if (nestedListMatch) {
+            if (!inList) {
+              html += '<ul>';
+              inList = true;
+            }
+            html += `<li class="nested">${inlineMarkdown(nestedListMatch[1])}</li>`;
+            return;
+          }
+
+          if (line.startsWith('#### ')) {
+            closeList();
+            html += `<h4>${inlineMarkdown(line.slice(5))}</h4>`;
+            return;
+          }
+
           if (line.startsWith('### ')) {
             closeList();
             html += `<h3>${inlineMarkdown(line.slice(4))}</h3>`;
@@ -3142,14 +4343,23 @@ AudioPlayer/
         return html;
       }
 
+      function injectHelpDownloadIcon(html) {
+        if (html.includes('help-download-icon')) return html;
+        const icon = '<a class="help-download-icon" target="_blank" href="download-migu-playlist.js" download="download-migu-playlist.js" title="下载 download-migu-playlist.js" aria-label="下载 download-migu-playlist.js"><img src="img/下载.png" alt=""></a>';
+        return html.replace(
+          /(<code>download-migu-playlist\.js<\/code>) 是一个 (<strong>Node\.js 命令行工具<\/strong>)/,
+          `$1 ${icon}是一个 $2`,
+        );
+      }
+
       async function loadHelpContent() {
         if (helpLoaded) return;
         try {
           const res = await fetch('README.md');
           if (!res.ok) throw new Error('fetch failed');
-          helpBody.innerHTML = renderMarkdown(await res.text());
+          helpBody.innerHTML = injectHelpDownloadIcon(renderMarkdown(await res.text()));
         } catch {
-          helpBody.innerHTML = renderMarkdown(readmeFallback);
+          helpBody.innerHTML = injectHelpDownloadIcon(renderMarkdown(readmeFallback));
         }
         helpLoaded = true;
       }
@@ -3178,11 +4388,13 @@ AudioPlayer/
 
     initSidebarResize();
     initHelpModal();
+    initFolderImportModal();
     loadPositions();
     loadCompleted();
     initCustomPlayer();
     initKeyboardShortcuts();
     preventBrowserFileDrop();
+    loadFolderHandles();
     loadPersistedFiles();
 
     setupDropZone(sidebar);
@@ -3190,8 +4402,10 @@ AudioPlayer/
     fileList.addEventListener('click', (e) => {
       if (mediaItems.length === 0 && !e.target.closest('.file-item')) fileInput.click();
     });
+    btnLocate.addEventListener('click', locateActiveFile);
     btnAdd.addEventListener('click', () => fileInput.click());
-    btnAddFolder.addEventListener('click', () => folderInput.click());
+    btnAddFolder.addEventListener('click', pickAndAddFolder);
+    btnRefresh.addEventListener('click', handleRefreshClick);
     btnClear.addEventListener('click', clearAllItems);
     btnSort.addEventListener('click', toggleSort);
     searchInput.addEventListener('input', (e) => {
@@ -3203,11 +4417,17 @@ AudioPlayer/
       searchInput.focus();
     });
     fileInput.addEventListener('change', (e) => {
-      if (e.target.files.length) addFiles(e.target.files);
+      if (e.target.files.length) importFilesWithLoading(e.target.files);
       e.target.value = '';
     });
     folderInput.addEventListener('change', (e) => {
-      if (e.target.files.length) addFiles(e.target.files);
+      if (!e.target.files.length) return;
+      if (folderImportViaInput) {
+        folderImportViaInput = false;
+        addPendingFolderFromFiles(e.target.files);
+      } else {
+        importFilesWithLoading(e.target.files);
+      }
       e.target.value = '';
     });
 

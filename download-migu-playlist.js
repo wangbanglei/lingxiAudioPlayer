@@ -9,9 +9,9 @@
  * 说明:
  * - playlistId 通过命令行传入（必填）
  * - 直接下载歌单中的全部歌曲（自动翻页加载）
- * - 歌曲保存到「当前目录/歌单名/歌名-歌手名.mp3」
- * - 歌词保存到「当前目录/歌单名/歌名-歌手名.lrc」
- * - 封面保存到「当前目录/歌单名/歌名-歌手名.jpg」
+ * - 歌曲保存到「当前目录/audio/歌单名/歌名-歌手名.mp3」
+ * - 歌词保存到「当前目录/audio/歌单名/歌名-歌手名.lrc」
+ * - 封面保存到「当前目录/audio/歌单名/歌名-歌手名.jpg」
  * - 本地已存在的完整文件会自动跳过
  * - Ctrl+C 取消时会删除当前未下载完成的临时文件
  */
@@ -22,6 +22,7 @@ const { Readable } = require('stream');
 
 const TEMP_SUFFIX = '.part';
 const COVER_EXTENSIONS = ['.jpg', '.jpeg', '.png', '.webp'];
+const AUDIO_DIR = 'audio';
 
 /** 当前正在下载的任务，用于取消时清理 */
 let currentDownload = null;
@@ -510,13 +511,20 @@ async function downloadFile(url, destPath, onProgress, abortController) {
   }
 }
 
+/** 确保 audio 目录存在，不存在则创建，已存在则直接使用 */
+async function ensureAudioDir(cwd = process.cwd()) {
+  const audioDir = path.join(cwd, AUDIO_DIR);
+  await fs.promises.mkdir(audioDir, { recursive: true });
+  return audioDir;
+}
+
 /** 主流程 */
 async function main() {
   setupCancelHandler();
 
   const { playlistId, playlistType } = parseArgs(process.argv);
   const playlistUrl = buildPlaylistUrl(playlistId, playlistType);
-  const outputDir = process.cwd();
+  const outputDir = await ensureAudioDir();
 
   console.log('咪咕音乐歌单下载');
   console.log(`页面地址: ${playlistUrl}`);
